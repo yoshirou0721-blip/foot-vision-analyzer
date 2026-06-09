@@ -32,7 +32,8 @@ function CameraScreen() {
     try {
       const fd = new FormData();
       fd.append("image", file);
-      const res = await fetch("/api/analyze", { method: "POST", body: fd });
+      const res = await fetch("http://127.0.0.1:8000/analyze", { method: "POST", body: fd });
+      if (!res.ok) throw new Error(`Analyze failed: ${res.status}`);
       const data = await res.json();
       sessionStorage.setItem("foot:result", JSON.stringify(data));
       navigate({ to: "/result" });
