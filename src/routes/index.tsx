@@ -26,21 +26,43 @@ function CameraScreen() {
     setPreview(URL.createObjectURL(f));
   };
 
+  const [error, setError] = useState<string | null>(null);
+
   const analyze = async () => {
     if (!file) return;
     setLoading(true);
+    setError(null);
+    const url = "http://127.0.0.1:8000/analyze";
+    console.log("[analyze] selected file:", file.name, file.type, file.size);
+    console.log("[analyze] request URL:", url);
     try {
       const fd = new FormData();
       fd.append("image", file);
-      const res = await fetch("http://127.0.0.1:8000/analyze", { method: "POST", body: fd });
-      if (!res.ok) throw new Error(`Analyze failed: ${res.status}`);
+      const res = await fetch(url, { method: "POST", body: fd });
+      console.log("[analyze] response status:", res.status);
+      if (!res.ok) {
+        const text = await res.text();
+        console.error("[analyze] error body:", text);
+        throw new Error(`Server responded ${res.status}`);
+      }
       const data = await res.json();
+      console.log("[analyze] response JSON:", data);
       sessionStorage.setItem("foot:result", JSON.stringify(data));
       navigate({ to: "/result" });
+    } catch (e) {
+      console.error("[analyze] error details:", e);
+      const msg =
+        e instanceof TypeError
+          ? "Could not reach the API at http://127.0.0.1:8000/analyze. The Lovable preview runs in your browser and cannot access localhost on your machine unless the server is reachable and CORS is enabled. Try running the frontend locally, exposing FastAPI via a tunnel (e.g. ngrok), or enabling CORS for this origin."
+          : e instanceof Error
+            ? e.message
+            : "Unknown error";
+      setError(msg);
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <main className="min-h-screen px-5 py-8 max-w-md mx-auto flex flex-col gap-6">
