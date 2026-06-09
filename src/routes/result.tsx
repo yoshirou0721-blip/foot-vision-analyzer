@@ -73,7 +73,7 @@ function ScoreCard({ score, footAge }: { score: number; footAge: number }) {
 
   return (
     <section className="neu p-6 flex items-center gap-6">
-      <div className="neu-inset size-40 rounded-full grid place-items-center shrink-0">
+      <div className="neu-inset size-40 rounded-full grid place-items-center shrink-0 relative">
         <svg viewBox="0 0 160 160" className="size-36 -rotate-90">
           <circle cx="80" cy="80" r={r} stroke="oklch(1 0 0 / 0.06)" strokeWidth="10" fill="none" />
           <circle
