@@ -2,7 +2,9 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, ChevronRight, Footprints, MessageSquareQuote } from "lucide-react";
 
-type AnalyzeResult = {
+type AnalysisType = "foot" | "front" | "side";
+
+type FootResult = {
   score: number;
   foot_age: number;
   hallux_right: number;
@@ -15,11 +17,43 @@ type AnalyzeResult = {
   articles: { title: string; url: string }[];
 };
 
+type FrontResult = {
+  score: number;
+  judge: string;
+  gravity_text: string;
+  gravity_rate: number;
+  left_leg_type: string;
+  right_leg_type: string;
+  o_rate: number;
+  x_rate: number;
+  comment: string;
+};
+
+type SideResult = {
+  score: number;
+  judge: string;
+  posture_type: string;
+  pelvis_type: string;
+  knee_type: string;
+  comment: string;
+};
+
+type Stored =
+  | { type: "foot"; data: FootResult }
+  | { type: "front"; data: FrontResult }
+  | { type: "side"; data: SideResult };
+
+const TITLES: Record<AnalysisType, string> = {
+  foot: "Your Foot Report",
+  front: "Front Posture Report",
+  side: "Side Posture Report",
+};
+
 export const Route = createFileRoute("/result")({
   head: () => ({
     meta: [
-      { title: "Foot Scan — Result" },
-      { name: "description", content: "Your foot analysis results." },
+      { title: "Scan — Result" },
+      { name: "description", content: "Your analysis results." },
     ],
   }),
   component: ResultScreen,
@@ -27,7 +61,7 @@ export const Route = createFileRoute("/result")({
 
 function ResultScreen() {
   const navigate = useNavigate();
-  const [data, setData] = useState<AnalyzeResult | null>(null);
+  const [stored, setStored] = useState<Stored | null>(null);
 
   useEffect(() => {
     const raw = sessionStorage.getItem("foot:result");
@@ -35,10 +69,16 @@ function ResultScreen() {
       navigate({ to: "/" });
       return;
     }
-    setData(JSON.parse(raw));
+    const parsed = JSON.parse(raw);
+    // Backward compat: if the older shape (no `type`) is found, assume foot.
+    if (parsed && typeof parsed === "object" && "type" in parsed && "data" in parsed) {
+      setStored(parsed as Stored);
+    } else {
+      setStored({ type: "foot", data: parsed as FootResult });
+    }
   }, [navigate]);
 
-  if (!data) return null;
+  if (!stored) return null;
 
   return (
     <main className="min-h-screen px-5 py-8 max-w-md mx-auto flex flex-col gap-5">
@@ -48,24 +88,93 @@ function ResultScreen() {
         </Link>
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Result</p>
-          <h1 className="text-xl font-semibold">Your Foot Report</h1>
+          <h1 className="text-xl font-semibold">{TITLES[stored.type]}</h1>
         </div>
       </header>
 
-      <ScoreCard score={data.score} footAge={data.foot_age} />
-
-      <MetricCard label="Hallux" icon="HV" left={data.hallux_left} right={data.hallux_right} unit="°" />
-      <MetricCard label="Tailor" icon="TB" left={data.tailor_left} right={data.tailor_right} unit="°" />
-      <MetricCard label="Splay" icon="SP" left={data.splay_left} right={data.splay_right} unit="mm" />
-
-      <CommentCard comment={data.comment} />
-
-      <ArticleList articles={data.articles} />
+      {stored.type === "foot" && <FootView data={stored.data} />}
+      {stored.type === "front" && <FrontView data={stored.data} />}
+      {stored.type === "side" && <SideView data={stored.data} />}
     </main>
   );
 }
 
-function ScoreCard({ score, footAge }: { score: number; footAge: number }) {
+/* ---------- Foot ---------- */
+
+function FootView({ data }: { data: FootResult }) {
+  return (
+    <>
+      <ScoreCard score={data.score} sub={{ label: "Foot Age", value: data.foot_age, unit: "years" }} />
+      <MetricCard label="Hallux" icon="HV" left={data.hallux_left} right={data.hallux_right} unit="°" />
+      <MetricCard label="Tailor" icon="TB" left={data.tailor_left} right={data.tailor_right} unit="°" />
+      <MetricCard label="Splay" icon="SP" left={data.splay_left} right={data.splay_right} unit="mm" />
+      <CommentCard comment={data.comment} />
+      <ArticleList articles={data.articles ?? []} />
+    </>
+  );
+}
+
+/* ---------- Front Posture ---------- */
+
+function FrontView({ data }: { data: FrontResult }) {
+  return (
+    <>
+      <ScoreCard score={data.score} sub={{ label: "Judge", value: data.judge }} />
+      <InfoCard
+        title="Center of Gravity"
+        rows={[
+          { label: "Position", value: data.gravity_text },
+          { label: "Rate", value: `${data.gravity_rate}%` },
+        ]}
+      />
+      <DualCard
+        title="Leg Type"
+        left={{ label: "Left", value: data.left_leg_type }}
+        right={{ label: "Right", value: data.right_leg_type }}
+      />
+      <section className="neu p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold">Leg Alignment</h3>
+          <Footprints className="size-4 text-muted-foreground" />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <Side label="O Rate" value={data.o_rate} unit="%" />
+          <Side label="X Rate" value={data.x_rate} unit="%" />
+        </div>
+      </section>
+      <CommentCard comment={data.comment} />
+    </>
+  );
+}
+
+/* ---------- Side Posture ---------- */
+
+function SideView({ data }: { data: SideResult }) {
+  return (
+    <>
+      <ScoreCard score={data.score} sub={{ label: "Judge", value: data.judge }} />
+      <InfoCard
+        title="Posture Analysis"
+        rows={[
+          { label: "Posture", value: data.posture_type },
+          { label: "Pelvis", value: data.pelvis_type },
+          { label: "Knee", value: data.knee_type },
+        ]}
+      />
+      <CommentCard comment={data.comment} />
+    </>
+  );
+}
+
+/* ---------- Shared ---------- */
+
+function ScoreCard({
+  score,
+  sub,
+}: {
+  score: number;
+  sub: { label: string; value: string | number; unit?: string };
+}) {
   const pct = Math.max(0, Math.min(100, score));
   const r = 60;
   const c = 2 * Math.PI * r;
@@ -98,10 +207,10 @@ function ScoreCard({ score, footAge }: { score: number; footAge: number }) {
           <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Score</div>
         </div>
       </div>
-      <div className="flex-1">
-        <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Foot Age</p>
-        <p className="text-5xl font-bold mt-1">{footAge}</p>
-        <p className="text-sm text-muted-foreground mt-2">years</p>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{sub.label}</p>
+        <p className="text-3xl font-bold mt-1 break-words">{sub.value}</p>
+        {sub.unit && <p className="text-sm text-muted-foreground mt-2">{sub.unit}</p>}
       </div>
     </section>
   );
@@ -140,7 +249,7 @@ function MetricCard({
 }
 
 function Side({ label, value, unit }: { label: string; value: number; unit: string }) {
-  const pct = Math.min(100, (value / 60) * 100);
+  const pct = Math.min(100, Math.max(0, (value / (unit === "%" ? 100 : 60)) * 100));
   return (
     <div className="neu-inset p-3 rounded-xl">
       <div className="flex justify-between items-baseline">
@@ -160,6 +269,52 @@ function Side({ label, value, unit }: { label: string; value: number; unit: stri
   );
 }
 
+function InfoCard({
+  title,
+  rows,
+}: {
+  title: string;
+  rows: { label: string; value: string | number }[];
+}) {
+  return (
+    <section className="neu p-5">
+      <h3 className="font-semibold mb-4">{title}</h3>
+      <div className="flex flex-col gap-2">
+        {rows.map((r, i) => (
+          <div key={i} className="neu-inset px-4 py-3 rounded-xl flex justify-between items-center">
+            <span className="text-xs uppercase tracking-wider text-muted-foreground">{r.label}</span>
+            <span className="text-sm font-semibold">{r.value}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function DualCard({
+  title,
+  left,
+  right,
+}: {
+  title: string;
+  left: { label: string; value: string };
+  right: { label: string; value: string };
+}) {
+  return (
+    <section className="neu p-5">
+      <h3 className="font-semibold mb-4">{title}</h3>
+      <div className="grid grid-cols-2 gap-4">
+        {[left, right].map((s, i) => (
+          <div key={i} className="neu-inset p-3 rounded-xl">
+            <div className="text-xs text-muted-foreground">{s.label}</div>
+            <div className="text-base font-semibold mt-1">{s.value}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function CommentCard({ comment }: { comment: string }) {
   return (
     <section className="neu p-5 flex gap-4">
@@ -175,6 +330,7 @@ function CommentCard({ comment }: { comment: string }) {
 }
 
 function ArticleList({ articles }: { articles: { title: string; url: string }[] }) {
+  if (!articles.length) return null;
   return (
     <section className="neu p-5">
       <h3 className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-3">Related Articles</h3>
