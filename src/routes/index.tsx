@@ -160,6 +160,15 @@ function CameraScreen() {
         />
       </div>
 
+      {error && (
+        <div
+          role="alert"
+          className="neu-inset p-4 text-sm text-accent-warn leading-relaxed"
+        >
+          {error}
+        </div>
+      )}
+
       {/* Analysis Start */}
       <button
         disabled={!file || loading}
