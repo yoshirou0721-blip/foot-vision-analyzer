@@ -8,7 +8,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import {
-  RESULT_KEY,
+  scanFiles,
   type Combined,
   type FootResult,
   type FrontResult,
@@ -37,16 +37,12 @@ function ResultScreen() {
   const [data, setData] = useState<Combined | null>(null);
 
   useEffect(() => {
-    const raw = sessionStorage.getItem(RESULT_KEY);
-    if (!raw) {
+    const r = scanFiles.getResult();
+    if (!r) {
       navigate({ to: "/" });
       return;
     }
-    try {
-      setData(JSON.parse(raw) as Combined);
-    } catch {
-      navigate({ to: "/" });
-    }
+    setData(r);
   }, [navigate]);
 
   if (!data) return null;

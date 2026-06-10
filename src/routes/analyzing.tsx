@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, Settings } from "lucide-react";
 import {
   MODE_META,
-  RESULT_KEY,
   SLOT_META,
   scanFiles,
   type Combined,
@@ -60,7 +59,7 @@ function AnalyzingScreen() {
 
         const combined: Combined = { mode, previews: scanFiles.previews() };
         for (const [k, d] of responses) (combined as any)[k] = d;
-        sessionStorage.setItem(RESULT_KEY, JSON.stringify(combined));
+        scanFiles.setResult(combined);
         setPct(100);
         window.setTimeout(() => navigate({ to: "/result" }), 350);
       } catch (e) {
