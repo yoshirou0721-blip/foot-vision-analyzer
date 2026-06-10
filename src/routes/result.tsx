@@ -1,349 +1,299 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, ChevronRight, Footprints, MessageSquareQuote } from "lucide-react";
-
-type AnalysisType = "foot" | "front" | "side";
-
-type FootResult = {
-  score: number;
-  foot_age: number;
-  hallux_right: number;
-  hallux_left: number;
-  tailor_right: number;
-  tailor_left: number;
-  splay_right: number;
-  splay_left: number;
-  comment: string;
-  articles: { title: string; url: string }[];
-};
-
-type FrontResult = {
-  score: number;
-  judge: string;
-  gravity_text: string;
-  gravity_rate: number;
-  left_leg_type: string;
-  right_leg_type: string;
-  o_rate: number;
-  x_rate: number;
-  comment: string;
-};
-
-type SideResult = {
-  score: number;
-  judge: string;
-  posture_type: string;
-  pelvis_type: string;
-  knee_type: string;
-  comment: string;
-};
-
-type Stored =
-  | { type: "foot"; data: FootResult }
-  | { type: "front"; data: FrontResult }
-  | { type: "side"; data: SideResult };
-
-const TITLES: Record<AnalysisType, string> = {
-  foot: "Your Foot Report",
-  front: "Front Posture Report",
-  side: "Side Posture Report",
-};
+import { ChevronLeft, Settings, MessageSquareQuote, ChevronRight, Sparkles } from "lucide-react";
+import { RESULT_KEY, type Combined } from "@/lib/scan-store";
 
 export const Route = createFileRoute("/result")({
   head: () => ({
-    meta: [
-      { title: "Scan — Result" },
-      { name: "description", content: "Your analysis results." },
-    ],
+    meta: [{ title: "YOSHIRO AI — 解析結果" }],
   }),
   component: ResultScreen,
 });
 
+function severity(deg: number): { label: string; tone: "ok" | "mid" | "high" } {
+  if (deg < 15) return { label: "正常", tone: "ok" };
+  if (deg < 30) return { label: "中等度", tone: "mid" };
+  return { label: "重度", tone: "high" };
+}
+
+const toneClass: Record<string, string> = {
+  ok: "text-[var(--accent-cyan)]",
+  mid: "text-[var(--accent-warn)]",
+  high: "text-[var(--accent-danger)]",
+};
+
 function ResultScreen() {
   const navigate = useNavigate();
-  const [stored, setStored] = useState<Stored | null>(null);
+  const [data, setData] = useState<Combined | null>(null);
 
   useEffect(() => {
-    const raw = sessionStorage.getItem("foot:result");
+    const raw = sessionStorage.getItem(RESULT_KEY);
     if (!raw) {
       navigate({ to: "/" });
       return;
     }
-    const parsed = JSON.parse(raw);
-    // Backward compat: if the older shape (no `type`) is found, assume foot.
-    if (parsed && typeof parsed === "object" && "type" in parsed && "data" in parsed) {
-      setStored(parsed as Stored);
-    } else {
-      setStored({ type: "foot", data: parsed as FootResult });
+    try {
+      setData(JSON.parse(raw) as Combined);
+    } catch {
+      navigate({ to: "/" });
     }
   }, [navigate]);
 
-  if (!stored) return null;
+  if (!data) return null;
+
+  const scores = [data.side?.score, data.front?.score, data.foot?.score].filter(
+    (n): n is number => typeof n === "number",
+  );
+  const overall = scores.length
+    ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
+    : 0;
+
+  const postureType = data.side?.posture_type ?? data.front?.judge ?? "—";
+
+  const halluxAvg = data.foot
+    ? Math.round((data.foot.hallux_left + data.foot.hallux_right) / 2)
+    : null;
+  const tailorAvg = data.foot
+    ? Math.round((data.foot.tailor_left + data.foot.tailor_right) / 2)
+    : null;
 
   return (
-    <main className="min-h-screen px-5 py-8 max-w-md mx-auto flex flex-col gap-5">
-      <header className="flex items-center gap-3">
-        <Link to="/" className="neu-sm size-11 grid place-items-center">
-          <ArrowLeft className="size-5" />
+    <main className="min-h-screen px-6 py-10 max-w-md mx-auto flex flex-col gap-7 text-foreground pb-16">
+      <header className="relative flex items-center justify-center">
+        <Link
+          to="/"
+          aria-label="Back"
+          className="neu-sm absolute left-0 size-12 grid place-items-center rounded-full"
+        >
+          <ChevronLeft className="size-5" />
         </Link>
-        <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Result</p>
-          <h1 className="text-xl font-semibold">{TITLES[stored.type]}</h1>
-        </div>
+        <h1 className="text-lg font-medium tracking-[0.15em]">解析結果</h1>
+        <button className="neu-sm absolute right-0 size-12 grid place-items-center rounded-full">
+          <Settings className="size-5 text-muted-foreground" />
+        </button>
       </header>
 
-      {stored.type === "foot" && <FootView data={stored.data} />}
-      {stored.type === "front" && <FrontView data={stored.data} />}
-      {stored.type === "side" && <SideView data={stored.data} />}
+      {/* Score gauge */}
+      <section className="flex flex-col items-center">
+        <p className="text-sm text-foreground/90 mb-3">総合評価</p>
+        <ScoreRing score={overall} />
+      </section>
+
+      {/* Posture type pill */}
+      <section className="flex flex-col items-center gap-3">
+        <p className="text-sm text-foreground/90">姿勢タイプ</p>
+        <div className="neu-inset h-14 w-full max-w-xs rounded-full grid place-items-center">
+          <span className="text-lg font-semibold">{postureType}</span>
+        </div>
+      </section>
+
+      {/* Analysis photos thumbnails */}
+      {(data.previews.side || data.previews.front || data.previews.foot) && (
+        <section className="grid grid-cols-3 gap-3">
+          {(["side", "front", "foot"] as const).map((k) => {
+            const src = data.previews[k];
+            const label = k === "side" ? "真横" : k === "front" ? "正面" : "足指";
+            return (
+              <div key={k} className="neu-sm p-2 rounded-2xl">
+                <div className="aspect-[3/4] rounded-xl overflow-hidden bg-black/30">
+                  {src ? (
+                    <img src={src} alt={label} className="size-full object-cover" />
+                  ) : null}
+                </div>
+                <p className="text-[10px] text-center mt-2 text-muted-foreground tracking-widest">
+                  {label}
+                </p>
+              </div>
+            );
+          })}
+        </section>
+      )}
+
+      {/* Metric bars */}
+      <section className="flex flex-col gap-6 px-1">
+        {data.front && (
+          <MetricBar
+            label="姿勢"
+            value={data.front.score}
+            max={100}
+            unit="点"
+            severityLabel={data.front.judge}
+            tone="ok"
+          />
+        )}
+        {halluxAvg !== null && (
+          <MetricBar
+            label="外反母趾"
+            value={halluxAvg}
+            max={60}
+            unit="°"
+            severityLabel={severity(halluxAvg).label}
+            tone={severity(halluxAvg).tone}
+          />
+        )}
+        {tailorAvg !== null && (
+          <MetricBar
+            label="内反小趾"
+            value={tailorAvg}
+            max={60}
+            unit="°"
+            severityLabel={severity(tailorAvg).label}
+            tone={severity(tailorAvg).tone}
+          />
+        )}
+      </section>
+
+      {/* Comments */}
+      {data.side?.comment && <CommentCard title="姿勢コメント" body={data.side.comment} />}
+      {data.front?.comment && <CommentCard title="正面コメント" body={data.front.comment} />}
+      {data.foot?.comment && <CommentCard title="足コメント" body={data.foot.comment} />}
+
+      {/* Recommended actions */}
+      <RecommendedActions />
+
+      {/* Articles */}
+      {data.foot?.articles && data.foot.articles.length > 0 && (
+        <section className="neu p-5 rounded-3xl">
+          <h3 className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-3">
+            関連記事
+          </h3>
+          <ul className="flex flex-col gap-3">
+            {data.foot.articles.map((a, i) => (
+              <li key={i}>
+                <a
+                  href={a.url}
+                  className="neu-sm flex items-center justify-between px-4 py-3 rounded-xl active:shadow-neu-inset"
+                >
+                  <span className="text-sm">{a.title}</span>
+                  <ChevronRight className="size-4 text-accent-cyan" />
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <div className="flex justify-center pt-2">
+        <button
+          onClick={() => navigate({ to: "/" })}
+          className="h-14 w-64 rounded-full bg-[var(--accent-cyan)] text-[var(--primary-foreground)] font-semibold tracking-[0.15em] text-sm shadow-[0_10px_30px_-10px_var(--accent-cyan)]"
+        >
+          詳細を見る
+        </button>
+      </div>
+
+      <p className={`hidden ${toneClass.ok} ${toneClass.mid} ${toneClass.high}`} />
     </main>
   );
 }
 
-/* ---------- Foot ---------- */
-
-function FootView({ data }: { data: FootResult }) {
-  return (
-    <>
-      <ScoreCard score={data.score} sub={{ label: "Foot Age", value: data.foot_age, unit: "years" }} />
-      <MetricCard label="Hallux" icon="HV" left={data.hallux_left} right={data.hallux_right} unit="°" />
-      <MetricCard label="Tailor" icon="TB" left={data.tailor_left} right={data.tailor_right} unit="°" />
-      <MetricCard label="Splay" icon="SP" left={data.splay_left} right={data.splay_right} unit="mm" />
-      <CommentCard comment={data.comment} />
-      <ArticleList articles={data.articles ?? []} />
-    </>
-  );
-}
-
-/* ---------- Front Posture ---------- */
-
-function FrontView({ data }: { data: FrontResult }) {
-  return (
-    <>
-      <ScoreCard score={data.score} sub={{ label: "Judge", value: data.judge }} />
-      <InfoCard
-        title="Center of Gravity"
-        rows={[
-          { label: "Position", value: data.gravity_text },
-          { label: "Rate", value: `${data.gravity_rate}%` },
-        ]}
-      />
-      <DualCard
-        title="Leg Type"
-        left={{ label: "Left", value: data.left_leg_type }}
-        right={{ label: "Right", value: data.right_leg_type }}
-      />
-      <section className="neu p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold">Leg Alignment</h3>
-          <Footprints className="size-4 text-muted-foreground" />
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <Side label="O Rate" value={data.o_rate} unit="%" />
-          <Side label="X Rate" value={data.x_rate} unit="%" />
-        </div>
-      </section>
-      <CommentCard comment={data.comment} />
-    </>
-  );
-}
-
-/* ---------- Side Posture ---------- */
-
-function SideView({ data }: { data: SideResult }) {
-  return (
-    <>
-      <ScoreCard score={data.score} sub={{ label: "Judge", value: data.judge }} />
-      <InfoCard
-        title="Posture Analysis"
-        rows={[
-          { label: "Posture", value: data.posture_type },
-          { label: "Pelvis", value: data.pelvis_type },
-          { label: "Knee", value: data.knee_type },
-        ]}
-      />
-      <CommentCard comment={data.comment} />
-    </>
-  );
-}
-
-/* ---------- Shared ---------- */
-
-function ScoreCard({
-  score,
-  sub,
-}: {
-  score: number;
-  sub: { label: string; value: string | number; unit?: string };
-}) {
-  const pct = Math.max(0, Math.min(100, score));
-  const r = 60;
+function ScoreRing({ score }: { score: number }) {
+  const r = 78;
   const c = 2 * Math.PI * r;
-  const dash = (pct / 100) * c;
-
+  const dash = (Math.max(0, Math.min(100, score)) / 100) * c;
   return (
-    <section className="neu p-6 flex items-center gap-6">
-      <div className="neu-inset size-40 rounded-full grid place-items-center shrink-0 relative">
-        <svg viewBox="0 0 160 160" className="size-36 -rotate-90">
-          <circle cx="80" cy="80" r={r} stroke="oklch(1 0 0 / 0.06)" strokeWidth="10" fill="none" />
-          <circle
-            cx="80"
-            cy="80"
-            r={r}
-            stroke="url(#scoreGrad)"
-            strokeWidth="10"
-            strokeLinecap="round"
-            fill="none"
-            strokeDasharray={`${dash} ${c}`}
-          />
-          <defs>
-            <linearGradient id="scoreGrad" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stopColor="oklch(0.85 0.16 200)" />
-              <stop offset="1" stopColor="oklch(0.75 0.18 260)" />
-            </linearGradient>
-          </defs>
-        </svg>
-        <div className="absolute text-center">
-          <div className="text-4xl font-bold text-accent-cyan">{score}</div>
-          <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Score</div>
-        </div>
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{sub.label}</p>
-        <p className="text-3xl font-bold mt-1 break-words">{sub.value}</p>
-        {sub.unit && <p className="text-sm text-muted-foreground mt-2">{sub.unit}</p>}
-      </div>
-    </section>
-  );
-}
-
-function MetricCard({
-  label,
-  icon,
-  left,
-  right,
-  unit,
-}: {
-  label: string;
-  icon: string;
-  left: number;
-  right: number;
-  unit: string;
-}) {
-  return (
-    <section className="neu p-5">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className="neu-inset size-10 rounded-full grid place-items-center text-[11px] font-bold text-accent-cyan">
-            {icon}
-          </div>
-          <h3 className="font-semibold">{label}</h3>
-        </div>
-        <Footprints className="size-4 text-muted-foreground" />
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <Side label="Left" value={left} unit={unit} />
-        <Side label="Right" value={right} unit={unit} />
-      </div>
-    </section>
-  );
-}
-
-function Side({ label, value, unit }: { label: string; value: number; unit: string }) {
-  const pct = Math.min(100, Math.max(0, (value / (unit === "%" ? 100 : 60)) * 100));
-  return (
-    <div className="neu-inset p-3 rounded-xl">
-      <div className="flex justify-between items-baseline">
-        <span className="text-xs text-muted-foreground">{label}</span>
-        <span className="text-lg font-semibold">
-          {value}
-          <span className="text-xs text-muted-foreground ml-0.5">{unit}</span>
-        </span>
-      </div>
-      <div className="mt-2 h-1.5 rounded-full bg-black/30 overflow-hidden">
-        <div
-          className="h-full rounded-full bg-gradient-to-r from-accent-cyan to-primary"
-          style={{ width: `${pct}%` }}
+    <div className="relative size-56 grid place-items-center">
+      <svg viewBox="0 0 200 200" className="size-full -rotate-90">
+        <defs>
+          <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="oklch(0.85 0.17 200)" />
+            <stop offset="100%" stopColor="oklch(0.55 0.18 230)" />
+          </linearGradient>
+        </defs>
+        <circle cx="100" cy="100" r={r} stroke="oklch(1 0 0 / 0.04)" strokeWidth="14" fill="none" />
+        <circle
+          cx="100"
+          cy="100"
+          r={r}
+          stroke="url(#ringGrad)"
+          strokeWidth="14"
+          strokeLinecap="round"
+          fill="none"
+          strokeDasharray={`${dash} ${c}`}
         />
+      </svg>
+      <div className="absolute inset-6 rounded-full neu-inset grid place-items-center">
+        <span className="text-6xl font-bold text-[var(--accent-cyan)] tracking-tight">{score}</span>
       </div>
     </div>
   );
 }
 
-function InfoCard({
-  title,
-  rows,
+function MetricBar({
+  label,
+  value,
+  max,
+  unit,
+  severityLabel,
+  tone,
 }: {
-  title: string;
-  rows: { label: string; value: string | number }[];
+  label: string;
+  value: number;
+  max: number;
+  unit: string;
+  severityLabel: string;
+  tone: "ok" | "mid" | "high";
 }) {
+  const pct = Math.min(100, Math.max(0, (value / max) * 100));
   return (
-    <section className="neu p-5">
-      <h3 className="font-semibold mb-4">{title}</h3>
-      <div className="flex flex-col gap-2">
-        {rows.map((r, i) => (
-          <div key={i} className="neu-inset px-4 py-3 rounded-xl flex justify-between items-center">
-            <span className="text-xs uppercase tracking-wider text-muted-foreground">{r.label}</span>
-            <span className="text-sm font-semibold">{r.value}</span>
-          </div>
-        ))}
+    <div className="flex items-center gap-4">
+      <span className="text-sm text-muted-foreground w-16 shrink-0">{label}</span>
+      <div className="flex-1 h-1.5 rounded-full bg-black/40 overflow-hidden">
+        <div
+          className="h-full rounded-full bg-[var(--accent-cyan)] shadow-[0_0_10px_var(--accent-cyan)]"
+          style={{ width: `${pct}%` }}
+        />
       </div>
-    </section>
+      <div className="w-16 text-right shrink-0">
+        <div className="text-sm font-semibold">
+          {value}
+          {unit}
+        </div>
+        <div className={`text-[11px] ${toneClass[tone]}`}>{severityLabel}</div>
+      </div>
+    </div>
   );
 }
 
-function DualCard({
-  title,
-  left,
-  right,
-}: {
-  title: string;
-  left: { label: string; value: string };
-  right: { label: string; value: string };
-}) {
+function CommentCard({ title, body }: { title: string; body: string }) {
   return (
-    <section className="neu p-5">
-      <h3 className="font-semibold mb-4">{title}</h3>
-      <div className="grid grid-cols-2 gap-4">
-        {[left, right].map((s, i) => (
-          <div key={i} className="neu-inset p-3 rounded-xl">
-            <div className="text-xs text-muted-foreground">{s.label}</div>
-            <div className="text-base font-semibold mt-1">{s.value}</div>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function CommentCard({ comment }: { comment: string }) {
-  return (
-    <section className="neu p-5 flex gap-4">
+    <section className="neu p-5 rounded-3xl flex gap-4">
       <div className="neu-inset size-10 rounded-full grid place-items-center shrink-0">
         <MessageSquareQuote className="size-5 text-accent-warn" />
       </div>
-      <div>
-        <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Comment</p>
-        <p className="mt-1 text-sm leading-relaxed">{comment}</p>
+      <div className="min-w-0">
+        <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{title}</p>
+        <p className="mt-1 text-sm leading-relaxed">{body}</p>
       </div>
     </section>
   );
 }
 
-function ArticleList({ articles }: { articles: { title: string; url: string }[] }) {
-  if (!articles.length) return null;
+function RecommendedActions() {
+  const actions = [
+    { title: "ストレッチを行う", desc: "猫背改善のための胸開きストレッチ" },
+    { title: "正しい靴を選ぶ", desc: "外反母趾を悪化させない靴選びのコツ" },
+    { title: "足指エクササイズ", desc: "足のアーチを保つ簡単トレーニング" },
+  ];
   return (
-    <section className="neu p-5">
-      <h3 className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-3">Related Articles</h3>
+    <section className="neu p-5 rounded-3xl">
+      <div className="flex items-center gap-2 mb-4">
+        <Sparkles className="size-4 text-accent-cyan" />
+        <h3 className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+          おすすめのアクション
+        </h3>
+      </div>
       <ul className="flex flex-col gap-3">
-        {articles.map((a, i) => (
-          <li key={i}>
-            <a
-              href={a.url}
-              className="neu-sm flex items-center justify-between px-4 py-3 active:shadow-neu-inset transition-shadow"
-            >
-              <span className="text-sm">{a.title}</span>
-              <ChevronRight className="size-4 text-accent-cyan" />
-            </a>
+        {actions.map((a, i) => (
+          <li
+            key={i}
+            className="neu-sm rounded-2xl px-4 py-3 flex items-center justify-between gap-3"
+          >
+            <div className="min-w-0">
+              <p className="text-sm font-medium">{a.title}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{a.desc}</p>
+            </div>
+            <ChevronRight className="size-4 text-accent-cyan shrink-0" />
           </li>
         ))}
       </ul>
