@@ -1,0 +1,252 @@
+.summaryResult {
+  width: 390px;
+  min-height: 931px;
+  position: relative;
+  margin: 0 auto;
+  box-shadow: 36px 40px 56px rgba(0, 0, 0, 0.19);
+  border-radius: 40px;
+  background:
+    linear-gradient(180deg, #2a2d32, #131313 99.17%) padding-box,
+    linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(0, 0, 0, 0)) border-box;
+  border: 2px solid transparent;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-align: center;
+  font-size: 17px;
+  color: #fff;
+  font-family: "SF Pro", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.neonBackground {
+  position: absolute;
+  top: 699px;
+  left: 187px;
+  filter: blur(200px);
+  border-radius: 50%;
+  background-color: rgba(86, 204, 242, 0.2);
+  width: 308px;
+  height: 314px;
+}
+
+.title {
+  position: absolute;
+  top: 78px;
+  left: 0;
+  right: 0;
+  font-size: 20px;
+  letter-spacing: 0.38px;
+  line-height: 24px;
+  font-weight: 600;
+  text-shadow: -3px -2px 22px rgba(255, 255, 255, 0.25);
+}
+
+.button,
+.button2 {
+  position: absolute;
+  top: 64px;
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: radial-gradient(96.39% 96.39% at 28.23% 11.29%, #5d6167, #13151a);
+  box-shadow:
+    10px 10px 20px rgba(0, 0, 0, 0.25),
+    inset 0 -3px 3px rgba(0, 0, 0, 0.13),
+    inset 0 1px 3px rgba(0, 0, 0, 0.25);
+  display: grid;
+  place-items: center;
+  color: rgba(235, 235, 245, 0.85);
+  border: 1.5px solid rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+}
+.button { left: 30px; }
+.button2 { right: 30px; }
+
+/* --- big circular progress --- */
+.progressBar {
+  position: absolute;
+  top: 187px;
+  left: calc(50% - 96px);
+  width: 192.5px;
+  height: 192.5px;
+}
+.ringOuter {
+  position: absolute;
+  inset: 12px;
+  border-radius: 50%;
+  background: linear-gradient(-41.79deg, #101113, #2b2f33);
+  box-shadow:
+    18.7px 18.7px 65px #141415,
+    -18.7px -18.7px 65px #485057;
+}
+.ringInner {
+  position: absolute;
+  inset: 37px;
+  border-radius: 50%;
+  background-color: #32363b;
+  box-shadow:
+    inset 2px 1px 2px rgba(255, 255, 255, 0.05),
+    inset -26px -26px 66px rgba(59, 68, 81, 0.5),
+    inset 26px 26px 81px rgba(0, 0, 0, 0.55);
+  display: grid;
+  place-items: center;
+}
+.ringArc {
+  position: absolute;
+  inset: 12px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, #2fb8ff var(--arc, 75%), rgba(13, 57, 78, 0.35) 0);
+  -webkit-mask: radial-gradient(circle, transparent 60%, #000 60.5%);
+          mask: radial-gradient(circle, transparent 60%, #000 60.5%);
+  filter: drop-shadow(0 0 12px rgba(86, 204, 242, 0.55));
+}
+.scoreNum {
+  position: absolute;
+  top: calc(50% - 35px);
+  left: 0;
+  right: 0;
+  font-size: 54px;
+  letter-spacing: 0.39px;
+  line-height: 64px;
+  font-weight: 700;
+  color: #00c0e8;
+  text-align: center;
+}
+.overallLabel {
+  position: absolute;
+  top: 151px;
+  left: 0;
+  right: 0;
+  font-size: 16px;
+  letter-spacing: 0.38px;
+  line-height: 24px;
+  font-weight: 600;
+}
+
+/* --- posture type label --- */
+.postureTitle {
+  position: absolute;
+  top: 406px;
+  left: 0;
+  right: 0;
+  font-size: 16px;
+  letter-spacing: 0.38px;
+  line-height: 24px;
+  font-weight: 600;
+  color: rgba(235, 235, 245, 0.7);
+}
+.postureCard {
+  position: absolute;
+  top: 442px;
+  left: 35px;
+  width: 320px;
+  height: 62px;
+  border-radius: 40px;
+  background-color: #24272c;
+  box-shadow:
+    -8px -8px 16px rgba(255, 255, 255, 0.04) inset,
+    8px 8px 16px rgba(0, 0, 0, 0.45) inset;
+  display: grid;
+  place-items: center;
+}
+.postureValue {
+  font-size: 20px;
+  letter-spacing: 0.38px;
+  line-height: 24px;
+  font-weight: 600;
+  color: #fff;
+}
+
+/* --- mode panel (sliders) --- */
+.mode {
+  position: absolute;
+  top: 524px;
+  left: 32px;
+  right: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding: 12px 0;
+  text-align: left;
+  color: rgba(235, 235, 245, 0.6);
+}
+.row {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  align-items: center;
+  column-gap: 24px;
+}
+.rowLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  text-align: center;
+}
+.slider {
+  position: relative;
+  height: 15px;
+}
+.sliderTrack {
+  position: absolute;
+  inset: 3.5px 0 3.5px 0;
+  border-radius: 25px;
+  background-color: #1b1b1d;
+  box-shadow:
+    -1.25px -1.25px 6px rgba(255, 255, 255, 0.08) inset,
+    1.25px 1.25px 6px rgba(0, 0, 0, 0.8) inset;
+}
+.sliderFill {
+  position: absolute;
+  top: 4px;
+  bottom: 3.5px;
+  left: 0;
+  border-radius: 25px;
+  background: linear-gradient(90deg, #2fb8ff, #9eecd9);
+  box-shadow: 0 0 10px rgba(86, 204, 242, 0.55);
+}
+.sliderKnob {
+  position: absolute;
+  top: -6px;
+  width: 27.5px;
+  height: 27.5px;
+  margin-left: -13.75px;
+  border-radius: 50%;
+  background:
+    radial-gradient(76% 76% at 24% 18%, #545659, #232629) padding-box,
+    linear-gradient(180deg, #2fb8ff, #9eecd9) border-box;
+  border: 1.5px solid transparent;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+}
+
+/* --- scale tick labels on the right side --- */
+.tick {
+  position: absolute;
+  left: 328px;
+  font-size: 11px;
+  letter-spacing: -0.08px;
+  line-height: 14px;
+  color: rgba(235, 235, 245, 0.6);
+  text-align: left;
+  width: 53px;
+}
+
+/* --- CTA --- */
+.cta {
+  position: absolute;
+  top: 795px;
+  left: calc(50% - 93px);
+  height: 52px;
+  width: 186px;
+  border-radius: 40px;
+  background-color: #00c3d0;
+  box-shadow:
+    -9px -9px 20px rgba(255, 255, 255, 0.04) inset,
+    9px 9px 20px rgba(0, 0, 0, 0.3) inset;
+  display: grid;
+  place-items: center;
+  font-size: 17px;
+  letter-spacing: -0.41px;
+  font-weight: 600;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}

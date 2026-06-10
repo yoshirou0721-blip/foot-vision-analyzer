@@ -9,10 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SummaryRouteImport } from './routes/summary'
 import { Route as ResultRouteImport } from './routes/result'
 import { Route as AnalyzingRouteImport } from './routes/analyzing'
 import { Route as IndexRouteImport } from './routes/index'
 
+const SummaryRoute = SummaryRouteImport.update({
+  id: '/summary',
+  path: '/summary',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResultRoute = ResultRouteImport.update({
   id: '/result',
   path: '/result',
@@ -33,34 +39,45 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/analyzing': typeof AnalyzingRoute
   '/result': typeof ResultRoute
+  '/summary': typeof SummaryRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/analyzing': typeof AnalyzingRoute
   '/result': typeof ResultRoute
+  '/summary': typeof SummaryRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/analyzing': typeof AnalyzingRoute
   '/result': typeof ResultRoute
+  '/summary': typeof SummaryRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/analyzing' | '/result'
+  fullPaths: '/' | '/analyzing' | '/result' | '/summary'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/analyzing' | '/result'
-  id: '__root__' | '/' | '/analyzing' | '/result'
+  to: '/' | '/analyzing' | '/result' | '/summary'
+  id: '__root__' | '/' | '/analyzing' | '/result' | '/summary'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AnalyzingRoute: typeof AnalyzingRoute
   ResultRoute: typeof ResultRoute
+  SummaryRoute: typeof SummaryRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/summary': {
+      id: '/summary'
+      path: '/summary'
+      fullPath: '/summary'
+      preLoaderRoute: typeof SummaryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/result': {
       id: '/result'
       path: '/result'
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnalyzingRoute: AnalyzingRoute,
   ResultRoute: ResultRoute,
+  SummaryRoute: SummaryRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

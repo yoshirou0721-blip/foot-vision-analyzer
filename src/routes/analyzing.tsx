@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, Settings } from "lucide-react";
+import styles from "./analyzing.module.css";
 import {
   MODE_META,
   SLOT_META,
@@ -44,16 +45,12 @@ function AnalyzingScreen() {
             const fd = new FormData();
             fd.append("image", files[key]!);
             const url = SLOT_META[key].endpoint;
-            console.log("[analyze]", key, url);
             const res = await fetch(url, { method: "POST", body: fd });
-            console.log("[analyze]", key, "status", res.status);
             if (!res.ok) {
               const t = await res.text();
               throw new Error(`${key}: ${res.status} ${t.slice(0, 120)}`);
             }
-            const data = await res.json();
-            console.log("[analyze]", key, "data", data);
-            return [key, data] as const;
+            return [key, await res.json()] as const;
           }),
         );
 
@@ -61,9 +58,8 @@ function AnalyzingScreen() {
         for (const [k, d] of responses) (combined as any)[k] = d;
         scanFiles.setResult(combined);
         setPct(100);
-        window.setTimeout(() => navigate({ to: "/result" }), 350);
+        window.setTimeout(() => navigate({ to: "/summary" }), 350);
       } catch (e) {
-        console.error("[analyze] failed", e);
         setError(
           e instanceof TypeError
             ? "APIに接続できません。FastAPIサーバー (127.0.0.1:8000) が起動しているか、CORS設定をご確認ください。"
@@ -81,50 +77,39 @@ function AnalyzingScreen() {
   }, [navigate]);
 
   return (
-    <main className="min-h-screen px-6 py-10 max-w-md mx-auto flex flex-col text-foreground">
-      <header className="relative flex items-center justify-center mb-12">
-        <Link
-          to="/"
-          aria-label="Back"
-          className="neu-sm absolute left-0 size-12 grid place-items-center rounded-full"
+    <div style={{ background: "#0f1114", minHeight: "100vh", padding: "16px 0" }}>
+      <div className={styles.analyzing}>
+        <button
+          className={styles.backButton}
+          onClick={() => navigate({ to: "/" })}
+          aria-label="戻る"
         >
-          <ChevronLeft className="size-5" />
-        </Link>
-        <h1 className="text-lg font-medium tracking-[0.2em]">YOSHIRO AI</h1>
-        <button className="neu-sm absolute right-0 size-12 grid place-items-center rounded-full">
-          <Settings className="size-5 text-muted-foreground" />
+          <ChevronLeft size={22} />
         </button>
-      </header>
+        <button className={styles.setting} aria-label="設定">
+          <Settings size={20} />
+        </button>
 
-      <p className="text-center text-2xl mt-8 mb-12">解析中...</p>
+        <div className={styles.title}>YOSHIRO AI</div>
+        <div className={styles.heading}>解析中...</div>
 
-      <div className="mx-auto relative size-56">
-        <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_30%_30%,oklch(0.85_0.18_240),oklch(0.55_0.22_320)_45%,oklch(0.3_0.05_260)_75%)] blur-[2px] animate-[pulse_3s_ease-in-out_infinite]" />
-        <div className="absolute inset-3 rounded-full bg-[conic-gradient(from_120deg,oklch(0.8_0.2_220),oklch(0.7_0.22_300),oklch(0.85_0.18_200),oklch(0.8_0.2_220))] mix-blend-screen opacity-90 animate-[spin_8s_linear_infinite]" />
-        <div className="absolute inset-6 rounded-full bg-[radial-gradient(circle_at_70%_70%,oklch(0.95_0.05_240_/_0.5),transparent_60%)]" />
-        <div className="absolute inset-0 rounded-full ring-1 ring-white/10 shadow-[0_30px_60px_-20px_oklch(0.55_0.22_300_/_0.6)]" />
-      </div>
+        <div className={styles.orb} />
 
-      <div className="mt-14 flex items-center gap-3">
-        <div className="flex-1 h-2 rounded-full bg-black/40 overflow-hidden shadow-inner">
-          <div
-            className="h-full rounded-full bg-[var(--accent-cyan)] transition-[width] duration-200 ease-out shadow-[0_0_12px_var(--accent-cyan)]"
-            style={{ width: `${pct}%` }}
-          />
+        <div className={styles.sliderWrap}>
+          <div className={styles.track} />
+          <div className={styles.fill} style={{ width: `calc(${pct}% - 2px)` }} />
         </div>
-        <span className="text-xs font-medium w-10 text-right">{pct}%</span>
-      </div>
+        <div className={styles.pct}>{pct}%</div>
 
-      {error && (
-        <div role="alert" className="neu-inset mt-8 p-4 text-sm text-accent-warn leading-relaxed">
-          {error}
-          <div className="mt-3">
-            <Link to="/" className="underline text-accent-cyan">
-              戻る
-            </Link>
+        {error && (
+          <div role="alert" className={styles.error}>
+            {error}
+            <div style={{ marginTop: 10 }}>
+              <Link to="/">戻る</Link>
+            </div>
           </div>
-        </div>
-      )}
-    </main>
+        )}
+      </div>
+    </div>
   );
 }
