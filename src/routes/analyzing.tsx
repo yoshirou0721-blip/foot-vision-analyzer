@@ -60,7 +60,7 @@ function AnalyzingScreen() {
 
         const combined: Combined = { mode, previews: scanFiles.previews() };
         for (const [k, d] of responses) (combined as any)[k] = d;
-        sessionStorage.setItem(RESULT_KEY, JSON.stringify(combined));
+        scanFiles.setResult(combined);
         setPct(100);
         window.setTimeout(() => navigate({ to: "/result" }), 350);
       } catch (e) {
