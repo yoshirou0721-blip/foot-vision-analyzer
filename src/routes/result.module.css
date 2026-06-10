@@ -1,0 +1,476 @@
+.result {
+  width: 390px;
+  height: 4320px;
+  position: relative;
+  margin: 0 auto;
+  box-shadow: 36px 40px 56px rgba(0, 0, 0, 0.19);
+  border-radius: 40px;
+  background:
+    linear-gradient(180deg, #2a2d32, #1d1d1d 99.17%) padding-box,
+    linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(0, 0, 0, 0)) border-box;
+  border: 2px solid transparent;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-align: center;
+  font-size: 11px;
+  color: rgba(235, 235, 245, 0.6);
+  font-family: "SF Pro", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+}
+
+.neonBackground {
+  position: absolute;
+  top: 410px;
+  left: calc(50% - 154px);
+  filter: blur(120px);
+  border-radius: 50%;
+  background-color: rgba(86, 204, 242, 0.18);
+  width: 308px;
+  height: 314px;
+}
+
+.neonBackground2 {
+  position: absolute;
+  top: 1338px;
+  left: calc(50% - 154px);
+  filter: blur(120px);
+  border-radius: 50%;
+  background-color: rgba(86, 204, 242, 0.18);
+  width: 308px;
+  height: 314px;
+}
+
+.title {
+  position: absolute;
+  top: 82px;
+  left: 0;
+  right: 0;
+  font-size: 20px;
+  letter-spacing: 0.38px;
+  line-height: 24px;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: -3px -2px 22px rgba(255, 255, 255, 0.25);
+}
+
+/* ====== Top battery (Posture score) ====== */
+.battery {
+  position: absolute;
+  top: 181px;
+  left: 53px;
+  width: 274px;
+  height: 112px;
+  color: #fff;
+}
+.batteryLabel {
+  position: absolute;
+  top: -5px;
+  left: 0;
+  right: 0;
+  font-size: 20px;
+  letter-spacing: 0.38px;
+  line-height: 24px;
+  font-weight: 600;
+  text-shadow: -3px -2px 22px rgba(255, 255, 255, 0.25);
+}
+.batteryBase {
+  position: absolute;
+  top: 73px;
+  left: 0;
+  width: 274px;
+  height: 39px;
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, #1a1c1f, #0e1012) padding-box,
+    linear-gradient(180deg, rgba(255,255,255,0.18), rgba(0,0,0,0.4)) border-box;
+  border: 1px solid transparent;
+  box-shadow:
+    inset 2px 2px 6px rgba(0,0,0,0.6),
+    inset -2px -2px 6px rgba(255,255,255,0.05);
+  overflow: hidden;
+}
+.batteryFill {
+  position: absolute;
+  inset: 4px;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #2fb8ff, #9eecd9);
+  box-shadow: 0 0 18px rgba(86, 204, 242, 0.7);
+}
+.scoreText {
+  position: absolute;
+  top: 204px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 34px;
+  color: #fff;
+}
+.scoreText b { letter-spacing: 0.37px; line-height: 41px; font-weight: 700; }
+.scoreText span {
+  font-size: 20px;
+  letter-spacing: 0.38px;
+  line-height: 24px;
+  font-weight: 600;
+  color: rgba(235, 235, 245, 0.6);
+  margin-left: 4px;
+}
+
+/* ====== Front body image + markers ====== */
+.bodyFront {
+  position: absolute;
+  top: 432px;
+  left: calc(50% - 87px);
+  width: 174px;
+  height: 305.3px;
+  color: #fff;
+}
+.bodyFront img,
+.bodySide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+}
+.markerR, .markerL {
+  position: absolute;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #2fb8ff, #9eecd9);
+  width: 29px;
+  height: 29px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 0 12px rgba(86, 204, 242, 0.6);
+}
+.markerR { top: 240px; left: 14px; }
+.markerL { top: 276px; left: 145px; }
+
+/* ====== Front sliders block ====== */
+.sliderTrack {
+  position: absolute;
+  box-shadow:
+    -2px -2px 4px rgba(255, 255, 255, 0.08) inset,
+    2px 2px 4px rgba(0, 0, 0, 0.8) inset;
+  border-radius: 25px;
+  background-color: rgba(36, 37, 40, 0.7);
+  width: 273px;
+  height: 9px;
+  left: 82px;
+}
+.knob {
+  position: absolute;
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  border-radius: 40px;
+  background:
+    radial-gradient(76.03% 76.03% at 24% 18%, #545659, #232629) padding-box,
+    linear-gradient(180deg, #2fb8ff, #9eecd9) border-box;
+  border: 1.5px solid transparent;
+  box-sizing: border-box;
+  width: 22.5px;
+  height: 22.5px;
+  display: grid;
+  place-items: center;
+  font-size: 9px;
+  color: rgba(235, 235, 245, 0.85);
+}
+.knobLg {
+  width: 26.5px;
+  height: 26.5px;
+}
+
+.rowLabel {
+  position: absolute;
+  left: 57px;
+  letter-spacing: -0.08px;
+  line-height: 18px;
+  text-align: left;
+  font-size: 11px;
+  color: rgba(235, 235, 245, 0.6);
+}
+.rowSub {
+  position: absolute;
+  left: 57px;
+  font-size: 9px;
+  letter-spacing: -0.08px;
+  line-height: 18px;
+  text-align: left;
+  color: rgba(235, 235, 245, 0.6);
+}
+.rowJudge {
+  position: absolute;
+  left: 200px;
+  font-size: 11px;
+  letter-spacing: -0.08px;
+  line-height: 18px;
+  text-align: left;
+  color: rgba(235, 235, 245, 0.85);
+}
+
+.rowLeftTab {
+  position: absolute;
+  left: 27px;
+  border-radius: 4px;
+  background-color: #fff;
+  width: 20px;
+  height: 55px;
+  color: #757e95;
+  font-size: 12px;
+  font-weight: 600;
+  display: grid;
+  place-items: center;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  letter-spacing: 2px;
+}
+
+.vline {
+  position: absolute;
+  border-right: 2px solid rgba(81, 216, 250, 0.47);
+  filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.25));
+  width: 0;
+}
+
+/* ====== Comment card ====== */
+.commentCard {
+  position: absolute;
+  left: 35px;
+  width: 320px;
+  box-shadow:
+    -8px -8px 16px rgba(255, 255, 255, 0.06) inset,
+    8px 8px 16px rgba(0, 0, 0, 0.4) inset;
+  border-radius: 40px;
+  background-color: #232527;
+  padding: 28px 30px;
+  box-sizing: border-box;
+  text-align: center;
+}
+.commentTitle {
+  font-size: 15px;
+  letter-spacing: 0.38px;
+  line-height: 24px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 12px;
+}
+.commentBody {
+  font-size: 13px;
+  line-height: 22px;
+  font-weight: 500;
+  color: #fff;
+  white-space: pre-wrap;
+}
+
+/* ====== Side body ====== */
+.bodySide {
+  position: absolute;
+  top: 1359px;
+  left: calc(50% - 87px);
+  width: 174px;
+  height: 305.3px;
+  color: #fff;
+}
+.markerBack { top: 240px; left: 0; }
+.markerFront { top: 276px; left: 145px; }
+
+/* ====== Foot age battery ====== */
+.batteryParent {
+  position: absolute;
+  top: 2246px;
+  left: 50px;
+  width: 291px;
+  height: 145px;
+  color: #fff;
+}
+.passLine {
+  position: absolute;
+  top: 118px;
+  left: 202px;
+  font-size: 11px;
+  color: rgba(235, 235, 245, 0.6);
+}
+.passLine span { display: block; font-size: 11px; line-height: 14px; }
+
+/* ====== Foot image ====== */
+.footImg {
+  position: absolute;
+  top: 2414px;
+  left: 11px;
+  width: 368px;
+  height: 276px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+/* ====== Foot metrics ====== */
+.footMetricLabel {
+  position: absolute;
+  left: 11px;
+  border-radius: 4px;
+  background-color: #fff;
+  width: 20px;
+  height: 72px;
+  color: #757e95;
+  font-size: 12px;
+  font-weight: 600;
+  display: grid;
+  place-items: center;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  letter-spacing: 2px;
+}
+.footSideLabel {
+  position: absolute;
+  left: 59px;
+  font-size: 11px;
+  color: rgba(235, 235, 245, 0.6);
+  text-align: left;
+}
+.footTrack {
+  position: absolute;
+  left: 86px;
+  width: 273px;
+  height: 9px;
+  box-shadow:
+    -2px -2px 4px rgba(255, 255, 255, 0.08) inset,
+    2px 2px 4px rgba(0, 0, 0, 0.8) inset;
+  border-radius: 25px;
+  background-color: rgba(36, 37, 40, 0.7);
+}
+.severityNormal {
+  position: absolute;
+  left: 86px;
+  font-size: 11px;
+  color: rgba(235, 235, 245, 0.6);
+  text-align: left;
+}
+.severitySevere {
+  position: absolute;
+  left: 337px;
+  font-size: 11px;
+  color: rgba(235, 235, 245, 0.6);
+  text-align: left;
+}
+
+/* ====== Score reference card ====== */
+.refCard {
+  position: absolute;
+  top: 312px;
+  left: 14px;
+  width: 362px;
+  height: 113px;
+  box-shadow:
+    -10px -10px 20px rgba(255, 255, 255, 0.06) inset,
+    10px 10px 20px rgba(0, 0, 0, 0.3) inset;
+  border-radius: 13px;
+  background-color: #24272c;
+}
+.refTitle {
+  position: absolute;
+  top: 323px;
+  left: 27px;
+  font-size: 11px;
+  color: rgba(235, 235, 245, 0.85);
+  text-align: left;
+}
+.refTile {
+  position: absolute;
+  top: 346px;
+  width: 70px;
+  height: 70px;
+  border-radius: 6px;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25) inset;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 11px;
+}
+.refTile b { font-size: 14px; font-weight: 700; line-height: 18px; }
+.refTile small { font-size: 10px; color: rgba(255,255,255,0.8); }
+
+/* ====== Articles section ====== */
+.articlesWrap {
+  position: absolute;
+  top: 3485px;
+  left: 23px;
+  width: 344px;
+  min-height: 200px;
+  box-shadow:
+    -6px -6px 12px rgba(255, 255, 255, 0.06) inset,
+    6px 6px 12px rgba(0, 0, 0, 0.35) inset;
+  border-radius: 40px;
+  background-color: #202122;
+  padding: 24px 28px;
+  box-sizing: border-box;
+}
+.articlesHeader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 0 14px;
+  font-size: 20px;
+  letter-spacing: 0.38px;
+  line-height: 24px;
+  font-weight: 600;
+  color: #fff;
+}
+.articleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 4px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  text-decoration: none;
+  color: #fff;
+}
+.articleRow:first-of-type { border-top: none; }
+.articleTitle { font-size: 13px; line-height: 18px; font-weight: 600; }
+.articleArrow { color: #00c0e8; font-size: 18px; }
+
+/* ====== CTA ====== */
+.cta {
+  position: absolute;
+  top: 4116px;
+  left: calc(50% - 100px);
+  box-shadow:
+    -9px -9px 20px rgba(255, 255, 255, 0.06) inset,
+    9px 9px 20px rgba(0, 0, 0, 0.3) inset;
+  border-radius: 40px;
+  background-color: #00c3d0;
+  height: 52px;
+  width: 200px;
+  display: grid;
+  place-items: center;
+  font-size: 17px;
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+
+/* ====== Top buttons ====== */
+.navBtn {
+  position: absolute;
+  top: 64px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  box-shadow:
+    8px 11px 19px rgba(0, 0, 0, 0.25),
+    -8px -11px 18px rgba(255, 255, 255, 0.08),
+    2px 1px 3px rgba(255, 255, 255, 0.06),
+    inset 0 -3px 3px rgba(0, 0, 0, 0.13),
+    inset 0 1px 3px rgba(0, 0, 0, 0.25);
+  background: radial-gradient(96.39% 96.39% at 28.23% 11.29%, #5d6167, #13151a);
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+}
+.navLeft { left: 30px; }
+.navRight { right: 30px; }
