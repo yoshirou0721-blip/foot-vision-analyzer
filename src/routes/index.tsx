@@ -1,7 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Settings, Plus, Check, ChevronDown } from "lucide-react";
-import { SLOT_META, type SlotKey, scanFiles } from "@/lib/scan-store";
+import {
+  MODE_META,
+  SLOT_META,
+  type Mode,
+  type SlotKey,
+  scanFiles,
+} from "@/lib/scan-store";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -13,10 +19,16 @@ export const Route = createFileRoute("/")({
   component: HomeScreen,
 });
 
-const ORDER: SlotKey[] = ["side", "front", "foot"];
+const MODES: { key: Mode; label: string }[] = [
+  { key: "full", label: "総合" },
+  { key: "front", label: "正面" },
+  { key: "side", label: "真横" },
+  { key: "foot", label: "足指" },
+];
 
 function HomeScreen() {
   const navigate = useNavigate();
+  const [mode, setMode] = useState<Mode>(scanFiles.getMode());
   const [filled, setFilled] = useState<Record<SlotKey, boolean>>({
     side: false,
     front: false,
@@ -37,6 +49,13 @@ function HomeScreen() {
     });
   }, []);
 
+  useEffect(() => {
+    scanFiles.setMode(mode);
+  }, [mode]);
+
+  const activeSlots = useMemo(() => MODE_META[mode].slots, [mode]);
+  const allReady = activeSlots.every((k) => filled[k]);
+
   const onPick = (key: SlotKey, file: File | null) => {
     if (!file) return;
     const reader = new FileReader();
@@ -47,12 +66,9 @@ function HomeScreen() {
     reader.readAsDataURL(file);
   };
 
-  const allReady = ORDER.every((k) => filled[k]);
-
   return (
     <main className="min-h-screen px-6 py-10 max-w-md mx-auto flex flex-col text-foreground">
-      {/* Header */}
-      <header className="relative flex items-center justify-center mb-12">
+      <header className="relative flex items-center justify-center mb-8">
         <h1 className="text-lg font-medium tracking-[0.15em]">YOSHIRO AI</h1>
         <button
           aria-label="Settings"
@@ -61,6 +77,23 @@ function HomeScreen() {
           <Settings className="size-5 text-muted-foreground" />
         </button>
       </header>
+
+      {/* Mode tabs */}
+      <div className="neu-inset rounded-full p-1.5 grid grid-cols-4 gap-1 mb-8">
+        {MODES.map((m) => (
+          <button
+            key={m.key}
+            onClick={() => setMode(m.key)}
+            className={`h-9 rounded-full text-xs font-medium tracking-wider transition-all ${
+              mode === m.key
+                ? "bg-[var(--accent-cyan)] text-[var(--primary-foreground)] shadow-[0_6px_14px_-6px_var(--accent-cyan)]"
+                : "text-muted-foreground"
+            }`}
+          >
+            {m.label}
+          </button>
+        ))}
+      </div>
 
       {/* Upload card */}
       <section className="neu p-6 rounded-3xl">
@@ -75,17 +108,13 @@ function HomeScreen() {
         </div>
 
         <ul className="flex flex-col gap-7">
-          {ORDER.map((key) => {
+          {activeSlots.map((key) => {
             const meta = SLOT_META[key];
             const done = filled[key];
             return (
               <li key={key} className="flex items-center justify-between">
                 <div className="min-w-0">
-                  <p
-                    className={`text-sm font-medium ${
-                      done ? "text-muted-foreground" : "text-muted-foreground"
-                    }`}
-                  >
+                  <p className="text-sm font-medium text-muted-foreground">
                     {meta.title}
                   </p>
                   <p className="text-xs text-foreground/80 mt-1">{meta.subtitle}</p>
@@ -99,7 +128,11 @@ function HomeScreen() {
                       : "neu-sm text-[var(--accent-cyan)]"
                   }`}
                 >
-                  {done ? <Check className="size-6" strokeWidth={3} /> : <Plus className="size-6" strokeWidth={2.5} />}
+                  {done ? (
+                    <Check className="size-6" strokeWidth={3} />
+                  ) : (
+                    <Plus className="size-6" strokeWidth={2.5} />
+                  )}
                 </button>
                 <input
                   ref={inputs[key]}
@@ -117,7 +150,6 @@ function HomeScreen() {
 
       <div className="flex-1 min-h-12" />
 
-      {/* Start button */}
       <button
         disabled={!allReady}
         onClick={() => navigate({ to: "/analyzing" })}

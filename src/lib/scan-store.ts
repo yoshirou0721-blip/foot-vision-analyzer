@@ -1,8 +1,7 @@
-// Tiny in-memory store for selected files + analysis results.
-// Files can't be JSON-serialized into sessionStorage, so we keep them in memory
-// and persist only the JSON results across the analyzing → result navigation.
+// In-memory store for selected files, analysis mode, and results.
 
 export type SlotKey = "side" | "front" | "foot";
+export type Mode = "full" | "side" | "front" | "foot";
 
 export const SLOT_META: Record<
   SlotKey,
@@ -26,6 +25,13 @@ export const SLOT_META: Record<
     endpoint: "http://127.0.0.1:8000/analyze",
     cameraLabel: "足  -真上-",
   },
+};
+
+export const MODE_META: Record<Mode, { label: string; slots: SlotKey[] }> = {
+  full: { label: "総合解析", slots: ["side", "front", "foot"] },
+  side: { label: "姿勢解析 -真横-", slots: ["side"] },
+  front: { label: "姿勢解析 -正面-", slots: ["front"] },
+  foot: { label: "足指解析", slots: ["foot"] },
 };
 
 export type FrontResult = {
@@ -63,10 +69,11 @@ export type FootResult = {
 };
 
 export type Combined = {
+  mode: Mode;
   side?: SideResult;
   front?: FrontResult;
   foot?: FootResult;
-  previews: Partial<Record<SlotKey, string>>; // data URLs for result screen
+  previews: Partial<Record<SlotKey, string>>;
 };
 
 type FileMap = Partial<Record<SlotKey, File>>;
@@ -74,10 +81,12 @@ type FileMap = Partial<Record<SlotKey, File>>;
 const g = globalThis as unknown as {
   __scanFiles?: FileMap;
   __scanPreviews?: Partial<Record<SlotKey, string>>;
+  __scanMode?: Mode;
 };
 
 if (!g.__scanFiles) g.__scanFiles = {};
 if (!g.__scanPreviews) g.__scanPreviews = {};
+if (!g.__scanMode) g.__scanMode = "full";
 
 export const scanFiles = {
   set(key: SlotKey, file: File, preview: string) {
@@ -100,6 +109,12 @@ export const scanFiles = {
   reset() {
     g.__scanFiles = {};
     g.__scanPreviews = {};
+  },
+  setMode(m: Mode) {
+    g.__scanMode = m;
+  },
+  getMode(): Mode {
+    return g.__scanMode ?? "full";
   },
 };
 
