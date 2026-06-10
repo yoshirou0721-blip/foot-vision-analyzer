@@ -66,7 +66,7 @@ function Result() {
           <img className={styles.child} alt="" />
           <div className={styles.div3}>{front ? `${Math.round(front.gravity_rate)}%` : "50%"}</div>
         </div>
-        <div className={styles.div4}>{front?.judge ?? "正常"}</div>
+        <div className={styles.div4}>正常</div>
         <div className={styles.div5}>傾き</div>
         <div className={styles.div6}>{front ? `${Math.round(front.gravity_rate)}°` : "0°"}</div>
         <div className={styles.div7}>{front ? `${Math.round(front.gravity_rate)}％` : "0％"}</div>
