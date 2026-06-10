@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, Settings } from "lucide-react";
 import {
   MODE_META,
-  RESULT_KEY,
   SLOT_META,
   scanFiles,
   type Combined,
