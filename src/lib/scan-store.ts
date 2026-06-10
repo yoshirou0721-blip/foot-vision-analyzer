@@ -117,6 +117,12 @@ export const scanFiles = {
   getMode(): Mode {
     return g.__scanMode ?? "full";
   },
+  setResult(r: Combined) {
+    g.__scanResult = r;
+  },
+  getResult(): Combined | null {
+    return g.__scanResult ?? null;
+  },
 };
 
 export const RESULT_KEY = "yoshiro:result";
