@@ -223,13 +223,13 @@ function Result() {
         </div>
         <div className={styles.lineDiv} />
         <div className={styles.neonBackground2} />
-        <div className={styles.div48}>{side?.judge ?? "正常"}</div>
+        <div className={styles.div48}>正常</div>
         <div className={styles.div49}>傾き</div>
         <div className={styles.div50}>0°</div>
         <div className={styles.div51}>傾き</div>
-        <div className={styles.div52}>{side?.pelvis_type ?? "後傾"}</div>
-        <div className={styles.div53}>{side?.posture_type ?? "後弯"}</div>
-        <div className={styles.div54}>{side?.knee_type ?? "反張膝"}</div>
+        <div className={styles.div52}>後傾</div>
+        <div className={styles.div53}>後弯</div>
+        <div className={styles.div54}>反張膝</div>
         <div className={styles.div55}>屈曲</div>
         <div className={styles.div56}>前傾</div>
         <div className={styles.div57}>ストレートネック</div>
