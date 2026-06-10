@@ -20,11 +20,18 @@ export const Route = createFileRoute("/")({
 });
 
 const MODES: { key: Mode; label: string }[] = [
-  { key: "full", label: "総合" },
+  { key: "full", label: "総合解析" },
   { key: "front", label: "正面" },
   { key: "side", label: "真横" },
   { key: "foot", label: "足指" },
 ];
+
+const MODE_HINT: Record<Mode, string> = {
+  full: "正面・真横・足指の3枚を解析",
+  front: "正面の姿勢のみを解析",
+  side: "真横の姿勢のみを解析",
+  foot: "足指のみを解析",
+};
 
 function HomeScreen() {
   const navigate = useNavigate();
@@ -94,6 +101,10 @@ function HomeScreen() {
           </button>
         ))}
       </div>
+
+      <p className="text-center text-xs text-muted-foreground mb-6">{MODE_HINT[mode]}</p>
+
+
 
       {/* Upload card */}
       <section className="neu p-6 rounded-3xl">
