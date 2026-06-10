@@ -8,7 +8,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import {
-  RESULT_KEY,
+  scanFiles,
   type Combined,
   type FootResult,
   type FrontResult,
