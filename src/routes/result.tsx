@@ -473,14 +473,17 @@ function Result() {
           <div className={styles.mode}>~69</div>
           <div className={styles.div95}>要ケア</div>
         </div>
+        {renderTags(sideTags, styles.diagTagsSide)}
         <div className={styles.resultChild24} />
         <div className={styles.mode2}>姿勢コメント</div>
         <div className={styles.mode3}>{side?.comment ?? "首・骨盤・膝は理想的な範囲です"}</div>
+        {renderTags(footTags, styles.diagTagsFoot)}
         <div className={styles.resultChild25} />
         <div className={styles.mode4}>足指コメント</div>
         <div className={styles.mode5}>
           {foot?.comment ?? "外反母趾と開帳足が認められます。\n\n前足部が広がることで親指への\n負担が増えやすい状態です。\n\n足指をしっかり使う習慣づくりを\nおすすめします。"}
         </div>
+        {renderTags(frontTags, styles.diagTagsFront)}
         <div className={styles.resultChild26} />
         <div className={styles.mode6}>姿勢コメント</div>
         <div className={styles.mode7}>{front?.comment ?? "首・骨盤・膝は理想的な範囲です"}</div>
