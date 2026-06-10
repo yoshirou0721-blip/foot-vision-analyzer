@@ -82,6 +82,7 @@ const g = globalThis as unknown as {
   __scanFiles?: FileMap;
   __scanPreviews?: Partial<Record<SlotKey, string>>;
   __scanMode?: Mode;
+  __scanResult?: Combined | null;
 };
 
 if (!g.__scanFiles) g.__scanFiles = {};
