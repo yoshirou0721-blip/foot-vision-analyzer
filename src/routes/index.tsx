@@ -102,6 +102,10 @@ function HomeScreen() {
         ))}
       </div>
 
+      <p className="text-center text-xs text-muted-foreground mb-6">{MODE_HINT[mode]}</p>
+
+
+
       {/* Upload card */}
       <section className="neu p-6 rounded-3xl">
         <div className="flex items-center justify-between mb-7">
