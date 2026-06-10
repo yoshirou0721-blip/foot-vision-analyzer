@@ -1,12 +1,22 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ChevronLeft, Settings, MessageSquareQuote, ChevronRight, Sparkles } from "lucide-react";
-import { RESULT_KEY, type Combined } from "@/lib/scan-store";
+import {
+  ChevronLeft,
+  Settings,
+  MessageSquareQuote,
+  ChevronRight,
+  Sparkles,
+} from "lucide-react";
+import {
+  RESULT_KEY,
+  type Combined,
+  type FootResult,
+  type FrontResult,
+  type SideResult,
+} from "@/lib/scan-store";
 
 export const Route = createFileRoute("/result")({
-  head: () => ({
-    meta: [{ title: "YOSHIRO AI — 解析結果" }],
-  }),
+  head: () => ({ meta: [{ title: "YOSHIRO AI — 解析結果" }] }),
   component: ResultScreen,
 });
 
@@ -48,15 +58,6 @@ function ResultScreen() {
     ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
     : 0;
 
-  const postureType = data.side?.posture_type ?? data.front?.judge ?? "—";
-
-  const halluxAvg = data.foot
-    ? Math.round((data.foot.hallux_left + data.foot.hallux_right) / 2)
-    : null;
-  const tailorAvg = data.foot
-    ? Math.round((data.foot.tailor_left + data.foot.tailor_right) / 2)
-    : null;
-
   return (
     <main className="min-h-screen px-6 py-10 max-w-md mx-auto flex flex-col gap-7 text-foreground pb-16">
       <header className="relative flex items-center justify-center">
@@ -73,96 +74,35 @@ function ResultScreen() {
         </button>
       </header>
 
-      {/* Score gauge */}
+      {/* Overall score */}
       <section className="flex flex-col items-center">
         <p className="text-sm text-foreground/90 mb-3">総合評価</p>
         <ScoreRing score={overall} />
       </section>
 
-      {/* Posture type pill */}
-      <section className="flex flex-col items-center gap-3">
-        <p className="text-sm text-foreground/90">姿勢タイプ</p>
-        <div className="neu-inset h-14 w-full max-w-xs rounded-full grid place-items-center">
-          <span className="text-lg font-semibold">{postureType}</span>
-        </div>
-      </section>
-
-      {/* Analysis photos thumbnails */}
-      {(data.previews.side || data.previews.front || data.previews.foot) && (
-        <section className="grid grid-cols-3 gap-3">
-          {(["side", "front", "foot"] as const).map((k) => {
-            const src = data.previews[k];
-            const label = k === "side" ? "真横" : k === "front" ? "正面" : "足指";
-            return (
-              <div key={k} className="neu-sm p-2 rounded-2xl">
-                <div className="aspect-[3/4] rounded-xl overflow-hidden bg-black/30">
-                  {src ? (
-                    <img src={src} alt={label} className="size-full object-cover" />
-                  ) : null}
-                </div>
-                <p className="text-[10px] text-center mt-2 text-muted-foreground tracking-widest">
-                  {label}
-                </p>
-              </div>
-            );
-          })}
-        </section>
+      {data.front && (
+        <FrontSection result={data.front} preview={data.previews.front} />
+      )}
+      {data.side && (
+        <SideSection result={data.side} preview={data.previews.side} />
+      )}
+      {data.foot && (
+        <FootSection result={data.foot} preview={data.previews.foot} />
       )}
 
-      {/* Metric bars */}
-      <section className="flex flex-col gap-6 px-1">
-        {data.front && (
-          <MetricBar
-            label="姿勢"
-            value={data.front.score}
-            max={100}
-            unit="点"
-            severityLabel={data.front.judge}
-            tone="ok"
-          />
-        )}
-        {halluxAvg !== null && (
-          <MetricBar
-            label="外反母趾"
-            value={halluxAvg}
-            max={60}
-            unit="°"
-            severityLabel={severity(halluxAvg).label}
-            tone={severity(halluxAvg).tone}
-          />
-        )}
-        {tailorAvg !== null && (
-          <MetricBar
-            label="内反小趾"
-            value={tailorAvg}
-            max={60}
-            unit="°"
-            severityLabel={severity(tailorAvg).label}
-            tone={severity(tailorAvg).tone}
-          />
-        )}
-      </section>
-
-      {/* Comments */}
-      {data.side?.comment && <CommentCard title="姿勢コメント" body={data.side.comment} />}
-      {data.front?.comment && <CommentCard title="正面コメント" body={data.front.comment} />}
-      {data.foot?.comment && <CommentCard title="足コメント" body={data.foot.comment} />}
-
-      {/* Recommended actions */}
       <RecommendedActions />
 
-      {/* Articles */}
       {data.foot?.articles && data.foot.articles.length > 0 && (
         <section className="neu p-5 rounded-3xl">
           <h3 className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-3">
-            関連記事
+            おすすめ記事
           </h3>
           <ul className="flex flex-col gap-3">
             {data.foot.articles.map((a, i) => (
               <li key={i}>
                 <a
                   href={a.url}
-                  className="neu-sm flex items-center justify-between px-4 py-3 rounded-xl active:shadow-neu-inset"
+                  className="neu-sm flex items-center justify-between px-4 py-3 rounded-xl"
                 >
                   <span className="text-sm">{a.title}</span>
                   <ChevronRight className="size-4 text-accent-cyan" />
@@ -178,12 +118,129 @@ function ResultScreen() {
           onClick={() => navigate({ to: "/" })}
           className="h-14 w-64 rounded-full bg-[var(--accent-cyan)] text-[var(--primary-foreground)] font-semibold tracking-[0.15em] text-sm shadow-[0_10px_30px_-10px_var(--accent-cyan)]"
         >
-          詳細を見る
+          もう一度解析する
         </button>
       </div>
 
       <p className={`hidden ${toneClass.ok} ${toneClass.mid} ${toneClass.high}`} />
     </main>
+  );
+}
+
+function SectionHeader({ title }: { title: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="h-px flex-1 bg-white/10" />
+      <h2 className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
+        {title}
+      </h2>
+      <div className="h-px flex-1 bg-white/10" />
+    </div>
+  );
+}
+
+function PreviewPhoto({ src, label }: { src?: string; label: string }) {
+  if (!src) return null;
+  return (
+    <div className="neu-sm p-2 rounded-2xl mx-auto w-40">
+      <div className="aspect-[3/4] rounded-xl overflow-hidden bg-black/30">
+        <img src={src} alt={label} className="size-full object-cover" />
+      </div>
+      <p className="text-[10px] text-center mt-2 text-muted-foreground tracking-widest">
+        {label}
+      </p>
+    </div>
+  );
+}
+
+function FrontSection({ result, preview }: { result: FrontResult; preview?: string }) {
+  return (
+    <section className="flex flex-col gap-5">
+      <SectionHeader title="正面の姿勢" />
+      <PreviewPhoto src={preview} label="正面" />
+      <div className="neu-inset h-14 rounded-full grid place-items-center">
+        <span className="text-base font-semibold">{result.judge}</span>
+      </div>
+      <div className="flex flex-col gap-4">
+        <MetricBar label="姿勢" value={result.score} max={100} unit="点" severityLabel={result.judge} tone="ok" />
+        <Row label="重心" value={`${result.gravity_text} ${Math.round(result.gravity_rate)}%`} />
+        <Row label="左脚" value={result.left_leg_type} />
+        <Row label="右脚" value={result.right_leg_type} />
+        <Row label="O脚率" value={`${Math.round(result.o_rate)}%`} />
+        <Row label="X脚率" value={`${Math.round(result.x_rate)}%`} />
+      </div>
+      <CommentCard title="正面コメント" body={result.comment} />
+    </section>
+  );
+}
+
+function SideSection({ result, preview }: { result: SideResult; preview?: string }) {
+  return (
+    <section className="flex flex-col gap-5">
+      <SectionHeader title="真横の姿勢" />
+      <PreviewPhoto src={preview} label="真横" />
+      <div className="neu-inset h-14 rounded-full grid place-items-center">
+        <span className="text-base font-semibold">{result.posture_type}</span>
+      </div>
+      <div className="flex flex-col gap-4">
+        <MetricBar label="姿勢" value={result.score} max={100} unit="点" severityLabel={result.judge} tone="ok" />
+        <Row label="骨盤" value={result.pelvis_type} />
+        <Row label="膝" value={result.knee_type} />
+      </div>
+      <CommentCard title="姿勢コメント" body={result.comment} />
+    </section>
+  );
+}
+
+function FootSection({ result, preview }: { result: FootResult; preview?: string }) {
+  const halluxAvg = Math.round((result.hallux_left + result.hallux_right) / 2);
+  const tailorAvg = Math.round((result.tailor_left + result.tailor_right) / 2);
+  const splayAvg = Math.round((result.splay_left + result.splay_right) / 2);
+  return (
+    <section className="flex flex-col gap-5">
+      <SectionHeader title="足指解析" />
+      <PreviewPhoto src={preview} label="足指" />
+      <div className="neu-inset h-14 rounded-full grid place-items-center">
+        <span className="text-base font-semibold">足指年齢 {result.foot_age}歳</span>
+      </div>
+      <div className="flex flex-col gap-4">
+        <MetricBar label="スコア" value={result.score} max={100} unit="点" severityLabel="" tone="ok" />
+        <MetricBar
+          label="外反母趾"
+          value={halluxAvg}
+          max={60}
+          unit="°"
+          severityLabel={severity(halluxAvg).label}
+          tone={severity(halluxAvg).tone}
+        />
+        <MetricBar
+          label="内反小趾"
+          value={tailorAvg}
+          max={60}
+          unit="°"
+          severityLabel={severity(tailorAvg).label}
+          tone={severity(tailorAvg).tone}
+        />
+        <MetricBar
+          label="開帳足"
+          value={splayAvg}
+          max={60}
+          unit="°"
+          severityLabel={severity(splayAvg).label}
+          tone={severity(splayAvg).tone}
+        />
+      </div>
+      <CommentCard title="足コメント" body={result.comment} />
+    </section>
+  );
+}
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between text-sm">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="font-medium">{value}</span>
+    </div>
   );
 }
 
@@ -213,7 +270,9 @@ function ScoreRing({ score }: { score: number }) {
         />
       </svg>
       <div className="absolute inset-6 rounded-full neu-inset grid place-items-center">
-        <span className="text-6xl font-bold text-[var(--accent-cyan)] tracking-tight">{score}</span>
+        <span className="text-6xl font-bold text-[var(--accent-cyan)] tracking-tight">
+          {score}
+        </span>
       </div>
     </div>
   );
@@ -237,7 +296,7 @@ function MetricBar({
   const pct = Math.min(100, Math.max(0, (value / max) * 100));
   return (
     <div className="flex items-center gap-4">
-      <span className="text-sm text-muted-foreground w-16 shrink-0">{label}</span>
+      <span className="text-xs text-muted-foreground w-16 shrink-0">{label}</span>
       <div className="flex-1 h-1.5 rounded-full bg-black/40 overflow-hidden">
         <div
           className="h-full rounded-full bg-[var(--accent-cyan)] shadow-[0_0_10px_var(--accent-cyan)]"
@@ -249,7 +308,9 @@ function MetricBar({
           {value}
           {unit}
         </div>
-        <div className={`text-[11px] ${toneClass[tone]}`}>{severityLabel}</div>
+        {severityLabel && (
+          <div className={`text-[11px] ${toneClass[tone]}`}>{severityLabel}</div>
+        )}
       </div>
     </div>
   );
