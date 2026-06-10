@@ -57,6 +57,92 @@ function Result() {
     articleItems.push({ title: defaultTitles[articleItems.length], url: "#" });
   }
 
+  type Sev = "normal" | "mild" | "moderate" | "severe";
+  const sevClass: Record<Sev, string> = {
+    normal: styles.diagNormal,
+    mild: styles.diagMild,
+    moderate: styles.diagModerate,
+    severe: styles.diagSevere,
+  };
+  const sevPrefix: Record<Sev, string> = {
+    normal: "",
+    mild: "軽度",
+    moderate: "中等度",
+    severe: "重度",
+  };
+  const sevFromText = (s: string | undefined): Sev => {
+    if (!s) return "normal";
+    if (s.includes("重度")) return "severe";
+    if (s.includes("中等度") || s.includes("中度")) return "moderate";
+    if (s.includes("軽度")) return "mild";
+    if (s.includes("正常") || s.includes("理想") || s.includes("良好")) return "normal";
+    return "moderate";
+  };
+  const stripSev = (s: string) =>
+    s.replace(/^(重度|中等度|中度|軽度|正常)/, "").trim();
+  const classifyAngle = (deg: number, thresholds: [number, number, number]): Sev => {
+    if (deg < thresholds[0]) return "normal";
+    if (deg < thresholds[1]) return "mild";
+    if (deg < thresholds[2]) return "moderate";
+    return "severe";
+  };
+  const tagLabel = (base: string, sev: Sev) =>
+    sev === "normal" ? `${base} 正常` : `${sevPrefix[sev]}${base}`;
+
+  type Tag = { label: string; sev: Sev };
+
+  const frontTags: Tag[] = [];
+  if (front) {
+    const gravSev = sevFromText(front.gravity_text) === "normal"
+      ? (Math.abs(front.gravity_rate - 50) < 5 ? "normal"
+        : Math.abs(front.gravity_rate - 50) < 10 ? "mild"
+        : Math.abs(front.gravity_rate - 50) < 20 ? "moderate" : "severe")
+      : sevFromText(front.gravity_text);
+    const gravBase = stripSev(front.gravity_text || "重心") || "重心";
+    frontTags.push({ label: tagLabel(gravBase, gravSev), sev: gravSev });
+    const oSev: Sev = front.o_rate < 5 ? "normal" : front.o_rate < 15 ? "mild" : front.o_rate < 30 ? "moderate" : "severe";
+    frontTags.push({ label: tagLabel("O脚", oSev), sev: oSev });
+    const xSev: Sev = front.x_rate < 5 ? "normal" : front.x_rate < 15 ? "mild" : front.x_rate < 30 ? "moderate" : "severe";
+    frontTags.push({ label: tagLabel("X脚", xSev), sev: xSev });
+  }
+
+  const sideTags: Tag[] = [];
+  if (side) {
+    const neckSev = sevFromText(side.posture_type);
+    const neckBase = stripSev(side.posture_type || "首") || "首";
+    sideTags.push({ label: tagLabel(neckBase, neckSev), sev: neckSev });
+    const pelvSev = sevFromText(side.pelvis_type);
+    const pelvBase = stripSev(side.pelvis_type || "骨盤") || "骨盤";
+    sideTags.push({ label: tagLabel(pelvBase, pelvSev), sev: pelvSev });
+    const kneeSev = sevFromText(side.knee_type);
+    const kneeBase = stripSev(side.knee_type || "膝") || "膝";
+    sideTags.push({ label: tagLabel(kneeBase, kneeSev), sev: kneeSev });
+  }
+
+  const footTags: Tag[] = [];
+  if (foot) {
+    const halluxSev = classifyAngle(Math.max(foot.hallux_left, foot.hallux_right), [15, 20, 40]);
+    footTags.push({ label: tagLabel("外反母趾", halluxSev), sev: halluxSev });
+    const tailorSev = classifyAngle(Math.max(foot.tailor_left, foot.tailor_right), [9, 14, 20]);
+    footTags.push({ label: tagLabel("内反小趾", tailorSev), sev: tailorSev });
+    const splaySev: Sev = (() => {
+      const v = Math.max(foot.splay_left, foot.splay_right);
+      if (v < 30) return "normal";
+      if (v < 40) return "mild";
+      if (v < 50) return "moderate";
+      return "severe";
+    })();
+    footTags.push({ label: tagLabel("開帳足", splaySev), sev: splaySev });
+  }
+
+  const renderTags = (tags: Tag[], cls: string) => (
+    <div className={`${styles.diagTags} ${cls}`}>
+      {tags.map((t, i) => (
+        <span key={i} className={`${styles.diagTag} ${sevClass[t.sev]}`}>{t.label}</span>
+      ))}
+    </div>
+  );
+
   return (
     <div style={{ background: "#0f1114", minHeight: "100vh" }}>
       <div className={styles.result}>
@@ -387,14 +473,17 @@ function Result() {
           <div className={styles.mode}>~69</div>
           <div className={styles.div95}>要ケア</div>
         </div>
+        {renderTags(sideTags, styles.diagTagsSide)}
         <div className={styles.resultChild24} />
         <div className={styles.mode2}>姿勢コメント</div>
         <div className={styles.mode3}>{side?.comment ?? "首・骨盤・膝は理想的な範囲です"}</div>
+        {renderTags(footTags, styles.diagTagsFoot)}
         <div className={styles.resultChild25} />
         <div className={styles.mode4}>足指コメント</div>
         <div className={styles.mode5}>
           {foot?.comment ?? "外反母趾と開帳足が認められます。\n\n前足部が広がることで親指への\n負担が増えやすい状態です。\n\n足指をしっかり使う習慣づくりを\nおすすめします。"}
         </div>
+        {renderTags(frontTags, styles.diagTagsFront)}
         <div className={styles.resultChild26} />
         <div className={styles.mode6}>姿勢コメント</div>
         <div className={styles.mode7}>{front?.comment ?? "首・骨盤・膝は理想的な範囲です"}</div>

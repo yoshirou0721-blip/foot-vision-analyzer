@@ -263,3 +263,34 @@
 .wrapper28 { position: absolute; top: 2911.25px; left: 196.25px; box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25); border-radius: 40px; background: radial-gradient(76.03% 76.03% at 24% 18%, #545659, #232629) padding-box, linear-gradient(180deg, #2fb8ff, #9eecd9) border-box; border: 1.5px solid transparent; box-sizing: border-box; width: 26.5px; height: 26.5px; flex-shrink: 0; font-size: 9px; }
 .div109 { position: absolute; top: 8px; left: 3px; letter-spacing: -0.08px; line-height: 18px; display: flex; align-items: center; justify-content: center; width: 20px; height: 10px; }
 .wrapper29 { position: absolute; top: 2946.25px; left: 196.25px; box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25); border-radius: 40px; background: radial-gradient(76.03% 76.03% at 24% 18%, #545659, #232629) padding-box, linear-gradient(180deg, #2fb8ff, #9eecd9) border-box; border: 1.5px solid transparent; box-sizing: border-box; width: 26.5px; height: 26.5px; flex-shrink: 0; font-size: 9px; }
+
+.diagTags {
+	position: absolute;
+	left: 35px;
+	width: 320px;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	justify-content: center;
+	z-index: 5;
+}
+.diagTagsFront { top: 1042px; }
+.diagTagsSide { top: 1901px; }
+.diagTagsFoot { top: 3000px; }
+.diagTag {
+	display: inline-flex;
+	align-items: center;
+	padding: 6px 12px;
+	border-radius: 999px;
+	font-size: 11px;
+	font-weight: 600;
+	font-family: 'SF Pro';
+	background: linear-gradient(145deg, #2a2d32, #1d1f22);
+	box-shadow: -2px -2px 4px rgba(255,255,255,0.06), 2px 2px 4px rgba(0,0,0,0.5);
+	border: 1px solid transparent;
+	white-space: nowrap;
+}
+.diagNormal { color: #5be3a0; border-color: rgba(91,227,160,0.4); }
+.diagMild { color: #f5d76e; border-color: rgba(245,215,110,0.4); }
+.diagModerate { color: #f5a25d; border-color: rgba(245,162,93,0.4); }
+.diagSevere { color: #ff6b6b; border-color: rgba(255,107,107,0.45); }
