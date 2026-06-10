@@ -183,73 +183,40 @@ function FootAgeBattery({ age }: { age: number }) {
   );
 }
 
-/* ============ FRONT ============ */
+/* ============ FRONT ============
+   Figma static labels: 頭 / 肩 / 腰 / 膝 / 脚 (left tabs)
+   Each row's center label is the static Figma label ("傾き" / "ズレ").
+   Only the knob position + numeric badge come from API. */
 function FrontSection({ result, preview }: { result: FrontResult; preview?: string }) {
-  // Build 5 rows mapped to the Figma slider stack.
   const rows: Array<{
-    label: string;
-    sub1: string;
-    val1: string;
-    sub2?: string;
-    val2?: string;
-    knobPct: number;
+    tab: string;
+    centerLabel: string; // STATIC Figma label
+    knobPct: number;     // API-derived position
+    knobValue: string;   // API-derived numeric badge
   }> = [
-    {
-      label: "頭",
-      sub1: "傾き",
-      val1: `${Math.round(result.gravity_rate)}%`,
-      sub2: result.gravity_text,
-      val2: "",
-      knobPct: Math.min(100, result.gravity_rate),
-    },
-    {
-      label: "肩",
-      sub1: "ズレ",
-      val1: result.judge,
-      knobPct: 50,
-    },
-    {
-      label: "腰",
-      sub1: "傾き",
-      val1: `${Math.round(result.o_rate)}%`,
-      sub2: "O脚率",
-      val2: "",
-      knobPct: Math.min(100, result.o_rate),
-    },
-    {
-      label: "膝",
-      sub1: "ズレ",
-      val1: result.left_leg_type,
-      knobPct: 50,
-    },
-    {
-      label: "脚",
-      sub1: "傾き",
-      val1: `${Math.round(result.x_rate)}%`,
-      sub2: "X脚率",
-      val2: "",
-      knobPct: Math.min(100, result.x_rate),
-    },
+    { tab: "頭", centerLabel: "傾き", knobPct: clampPct(result.gravity_rate), knobValue: `${Math.round(result.gravity_rate)}%` },
+    { tab: "肩", centerLabel: "ズレ", knobPct: 50, knobValue: `${result.score}` },
+    { tab: "腰", centerLabel: "傾き", knobPct: clampPct(result.o_rate), knobValue: `${Math.round(result.o_rate)}%` },
+    { tab: "膝", centerLabel: "ズレ", knobPct: clampPct((result.o_rate + result.x_rate) / 2), knobValue: `${Math.round((result.o_rate + result.x_rate) / 2)}%` },
+    { tab: "脚", centerLabel: "傾き", knobPct: clampPct(result.x_rate), knobValue: `${Math.round(result.x_rate)}%` },
   ];
 
-  const tops = [770, 803, 846, 876, 918]; // slider tops from Figma
-  const labelTops = [765, 799, 838, 871, 910];
+  const tops = [770, 842, 914, 986, 1010];
+  const labelTops = [765, 837, 909, 981, 1005];
 
   return (
     <>
       <div className={styles.bodyFront}>
         {preview ? <img src={preview} alt="正面" /> : <div style={{width:"100%",height:"100%",background:"rgba(255,255,255,0.04)",borderRadius:12}} />}
+        {/* Figma static anchors: 右 / 左 */}
         <div className={styles.markerR}>右</div>
         <div className={styles.markerL}>左</div>
       </div>
 
-      {/* big judge label on right */}
-      <div className={styles.rowJudge} style={{ top: 752 }}>{result.judge}</div>
-
-      {/* Left tabs (head/shoulder/hip/knee) — 4 of 5 rows */}
-      {["頭", "肩", "腰", "膝"].map((c, i) => (
-        <div key={c} className={styles.rowLeftTab} style={{ top: 770 + i * 72 }}>
-          {c}
+      {/* Left vertical tabs — STATIC Figma labels */}
+      {rows.map((r, i) => (
+        <div key={r.tab} className={styles.rowLeftTab} style={{ top: tops[i] - 5 }}>
+          {r.tab}
         </div>
       ))}
 
@@ -257,24 +224,18 @@ function FrontSection({ result, preview }: { result: FrontResult; preview?: stri
       <div className={styles.vline} style={{ top: 769, left: 209, height: 273 }} />
 
       {rows.map((r, i) => (
-        <div key={i}>
-          <div className={styles.rowLabel} style={{ top: labelTops[i] }}>{r.sub1}</div>
-          <div className={styles.rowSub} style={{ top: labelTops[i] + 14 }}>{r.val1}</div>
-          {r.sub2 && (
-            <>
-              <div className={styles.rowLabel} style={{ top: labelTops[i] + 34 }}>{r.sub2}</div>
-              <div className={styles.rowSub} style={{ top: labelTops[i] + 48 }}>{r.val2}</div>
-            </>
-          )}
+        <div key={r.tab + i}>
+          {/* STATIC center label from Figma */}
+          <div className={styles.rowLabel} style={{ top: labelTops[i] }}>{r.centerLabel}</div>
           <div className={styles.sliderTrack} style={{ top: tops[i] + 6 }} />
           <div
             className={styles.knob}
             style={{
               top: tops[i] - 0.75,
-              left: 82 + Math.max(0, Math.min(264, (r.knobPct / 100) * 250)),
+              left: 82 + (r.knobPct / 100) * 250,
             }}
           >
-            {Math.round(r.knobPct)}
+            {r.knobValue}
           </div>
         </div>
       ))}
@@ -282,58 +243,52 @@ function FrontSection({ result, preview }: { result: FrontResult; preview?: stri
   );
 }
 
-/* ============ SIDE ============ */
+/* ============ SIDE ============
+   Figma static labels: 首 / 骨盤 / 膝 + 後 / 前 anchors */
 function SideSection({ result, preview }: { result: SideResult; preview?: string }) {
   const rows = [
-    { label: "首", val: result.posture_type, knobPct: 30 },
-    { label: "骨盤", val: result.pelvis_type, knobPct: 50 },
-    { label: "膝", val: result.knee_type, knobPct: 70 },
+    { tab: "首", centerLabel: "傾き", knobPct: 30, value: `${result.score}` },
+    { tab: "骨盤", centerLabel: "傾き", knobPct: 50, value: `${result.score}` },
+    { tab: "膝", centerLabel: "傾き", knobPct: 70, value: `${result.score}` },
   ];
   const tops = [1713, 1794, 1867];
-  const labelTops = [1698, 1772, 1844];
+  const labelTops = [1708, 1789, 1862];
 
   return (
     <>
       <div className={styles.bodySide}>
         {preview ? <img src={preview} alt="真横" /> : <div style={{width:"100%",height:"100%",background:"rgba(255,255,255,0.04)",borderRadius:12}} />}
+        {/* Figma static anchors: 後 / 前 */}
         <div className={styles.markerR} style={{ top: 240, left: 0 }}>後</div>
         <div className={styles.markerL} style={{ top: 276, left: 145 }}>前</div>
       </div>
 
-      <div className={styles.rowJudge} style={{ top: 1689 }}>{result.judge}</div>
-
       {/* Left tabs */}
-      {["首", "骨盤", "膝"].map((c, i) => (
+      {rows.map((r, i) => (
         <div
-          key={c}
+          key={r.tab}
           className={styles.rowLeftTab}
           style={{ top: tops[i] - 15, left: 32 }}
         >
-          {c}
+          {r.tab}
         </div>
       ))}
 
-      {/* Horizontal guideline */}
-      <div
-        className={styles.vline}
-        style={{ top: 1705, left: 214, height: 183 }}
-      />
+      <div className={styles.vline} style={{ top: 1705, left: 214, height: 183 }} />
 
       {rows.map((r, i) => (
-        <div key={r.label}>
-          <div className={styles.rowLabel} style={{ top: labelTops[i], left: 62 }}>傾き</div>
-          <div className={styles.rowSub} style={{ top: labelTops[i], left: 88 }}>
-            {r.val}
-          </div>
+        <div key={r.tab}>
+          {/* STATIC center label */}
+          <div className={styles.rowLabel} style={{ top: labelTops[i], left: 62 }}>{r.centerLabel}</div>
           <div className={styles.sliderTrack} style={{ top: tops[i] + 7, left: 87 }} />
           <div
             className={`${styles.knob} ${styles.knobLg}`}
             style={{
               top: tops[i],
-              left: 87 + Math.max(0, Math.min(260, (r.knobPct / 100) * 250)),
+              left: 87 + (r.knobPct / 100) * 250,
             }}
           >
-            {Math.round(r.knobPct)}
+            {r.value}
           </div>
         </div>
       ))}
@@ -341,11 +296,11 @@ function SideSection({ result, preview }: { result: SideResult; preview?: string
   );
 }
 
-/* ============ FOOT ============ */
+/* ============ FOOT ============
+   Figma static labels: 外反母趾 / 内反小趾 / 開帳足  (tabs)
+                        右 / 左  (per-row side label)
+                        正常 / 重度  (scale anchors) */
 function FootSection({ result, preview }: { result: FootResult; preview?: string }) {
-  if (preview) {
-    /* render */
-  }
   const groups = [
     {
       title: "外反母趾",
@@ -368,14 +323,14 @@ function FootSection({ result, preview }: { result: FootResult; preview?: string
       unit: "°",
     },
     {
-      title: "開帳足％",
+      title: "開帳足",
       topLabel: 2912,
       topTrack1: 2920,
       topTrack2: 2954,
       right: result.splay_right,
       left: result.splay_left,
       max: 100,
-      unit: "",
+      unit: "%",
     },
   ];
 
@@ -394,34 +349,36 @@ function FootSection({ result, preview }: { result: FootResult; preview?: string
         const pctL = Math.min(100, (g.left / g.max) * 100);
         return (
           <div key={g.title}>
+            {/* STATIC Figma tab */}
             <div className={styles.footMetricLabel} style={{ top: g.topLabel }}>
               {g.title}
             </div>
-            <div className={styles.severityNormal} style={{ top: g.topLabel + 57 }}>正常</div>
-            <div className={styles.severitySevere} style={{ top: g.topLabel + 57 }}>重度</div>
+            {/* STATIC scale anchors */}
+            <div className={styles.severityNormal} style={{ top: g.topLabel - 14 }}>正常</div>
+            <div className={styles.severitySevere} style={{ top: g.topLabel - 14 }}>重度</div>
 
-            {/* Right */}
+            {/* Right row — STATIC "右" label, API value in knob */}
             <div className={styles.footSideLabel} style={{ top: g.topLabel + 5 }}>右</div>
             <div className={styles.footTrack} style={{ top: g.topTrack1 }} />
             <div
               className={`${styles.knob} ${styles.knobLg}`}
               style={{
                 top: g.topTrack1 - 9,
-                left: 86 + Math.max(0, Math.min(250, (pctR / 100) * 250)),
+                left: 86 + (pctR / 100) * 250,
                 color: sevR === "high" ? "#ff8585" : sevR === "mid" ? "#ffcc66" : undefined,
               }}
             >
               {Math.round(g.right)}{g.unit}
             </div>
 
-            {/* Left */}
+            {/* Left row — STATIC "左" label */}
             <div className={styles.footSideLabel} style={{ top: g.topLabel + 39 }}>左</div>
             <div className={styles.footTrack} style={{ top: g.topTrack2 }} />
             <div
               className={`${styles.knob} ${styles.knobLg}`}
               style={{
                 top: g.topTrack2 - 9,
-                left: 86 + Math.max(0, Math.min(250, (pctL / 100) * 250)),
+                left: 86 + (pctL / 100) * 250,
                 color: sevL === "high" ? "#ff8585" : sevL === "mid" ? "#ffcc66" : undefined,
               }}
             >
@@ -454,4 +411,8 @@ function CommentCard({
       <div className={styles.commentBody}>{body}</div>
     </div>
   );
+}
+
+function clampPct(n: number) {
+  return Math.max(0, Math.min(100, n));
 }
